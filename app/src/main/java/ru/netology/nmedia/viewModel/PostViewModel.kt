@@ -8,7 +8,7 @@ import ru.netology.nmedia.repository.PostRepositoryInMemory
 
 class PostViewModel: ViewModel() {
     private val repository : PostRepository = PostRepositoryInMemory()
-    val data : LiveData<Post> = repository.get()
-    fun like() = repository.like()
-    fun reposts() = repository.reposts()
+    val data = repository.get()
+    fun like(id: Long) = repository.likeById(id)
+    fun reposts(id: Long) = repository.reposts(id)
 }

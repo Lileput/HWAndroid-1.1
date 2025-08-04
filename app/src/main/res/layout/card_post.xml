@@ -39,7 +39,6 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="@dimen/common_margin"
         app:layout_constraintBottom_toBottomOf="@id/avatar"
-
         app:layout_constraintStart_toEndOf="@id/avatar"
         app:layout_constraintTop_toBottomOf="@id/author"
         tools:text="@sample/posts.json/data/published" />

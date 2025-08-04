@@ -16,7 +16,6 @@ interface onInteractionListener {
     fun remove(post: Post)
     fun repost(post: Post)
     fun edit(post: Post)
-    fun cancelEdit()
 }
 
 class PostAdapter(

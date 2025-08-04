@@ -39,11 +39,6 @@ class MainActivity : AppCompatActivity() {
             override fun edit(post: Post) {
                 viewModel.edit(post)
             }
-
-            override fun cancelEdit() {
-                viewModel.cancelEdit()
-            }
-
         })
 
         binding.list.adapter = adapter

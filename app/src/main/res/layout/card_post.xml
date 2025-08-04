@@ -44,10 +44,12 @@
         app:layout_constraintTop_toBottomOf="@id/author"
         tools:text="@sample/posts.json/data/published" />
 
-    <ImageView
+    <ImageButton
         android:id="@+id/menu"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:contentDescription="TODO"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/ic_more_vert_24" />
@@ -80,7 +82,7 @@
         android:layout_height="wrap_content"
         android:layout_marginVertical="@dimen/common_margin"
         android:layout_marginTop="@dimen/common_margin"
-        android:background="@android:color/background_light"
+        android:background="@android:color/transparent"
         android:contentDescription="TODO"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/barrierFooter"
@@ -103,7 +105,7 @@
         android:layout_height="wrap_content"
         android:layout_marginVertical="@dimen/common_margin"
         android:layout_marginStart="24dp"
-        android:background="@android:color/background_light"
+        android:background="@android:color/transparent"
         android:contentDescription="TODO"
         app:layout_constraintStart_toEndOf="@id/countLikes"
         app:layout_constraintTop_toBottomOf="@id/barrierFooter"

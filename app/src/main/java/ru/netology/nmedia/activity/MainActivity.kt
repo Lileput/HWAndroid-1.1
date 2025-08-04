@@ -1,42 +1,35 @@
-package ru.netology.nmedia.activity
+    package ru.netology.nmedia.activity
 
-import android.os.Bundle
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
-import ru.netology.nmedia.R
-import ru.netology.nmedia.databinding.ActivityMainBinding
-import ru.netology.nmedia.viewModel.PostViewModel
+    import android.os.Bundle
+    import androidx.activity.viewModels
+    import androidx.appcompat.app.AppCompatActivity
+    import ru.netology.nmedia.R
+    import ru.netology.nmedia.adapter.PostAdapter
+    import ru.netology.nmedia.databinding.ActivityMainBinding
+    import ru.netology.nmedia.databinding.CardPostBinding
+    import ru.netology.nmedia.dto.Post
+    import ru.netology.nmedia.viewModel.PostViewModel
 
-class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+    class MainActivity : AppCompatActivity() {
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+            val binding = ActivityMainBinding.inflate(layoutInflater)
+            setContentView(binding.root)
 
-        val viewModel: PostViewModel by viewModels()
-        viewModel.data.observe(this) { post ->
-            with(binding) {
-                author.text = post.author
-                published.text = post.published
-                content.text = post.content
-                countEyes.text = ShortNumberFormatter.format(post.views)
-                countLikes.text = ShortNumberFormatter.format(post.likes)
-                countReposts.text = ShortNumberFormatter.format(post.share)
-                if (post.likeByMe) {
-                    likes.setImageResource(R.drawable.ic_liked_red_24)
-                } else {
-                    likes.setImageResource(R.drawable.ic_outline_like_24)
+            val viewModel: PostViewModel by viewModels()
+
+            val adapter = PostAdapter(
+                onItemLikeListener = { post: Post ->
+                    viewModel.like(post.id)
+                },
+                onItemShareListener = { post: Post ->
+                    viewModel.reposts(post.id)
                 }
-//                countLikes.text = ShortNumberFormatter.format(post.likes)
-            }
-            binding.likes.setOnClickListener {
-                viewModel.like()
-            }
+            )
 
-            binding.reposts.setOnClickListener {
-                viewModel.reposts()
+            binding.list.adapter = adapter
+            viewModel.data.observe(this) { posts ->
+                adapter.submitList(posts)
             }
         }
-
     }
-}

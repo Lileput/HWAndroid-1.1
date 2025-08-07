@@ -8,7 +8,6 @@
     android:padding="@dimen/common_margin"
     tools:context=".activity.MainActivity">
 
-
     <ImageView
         android:id="@+id/avatar"
         android:layout_width="48dp"
@@ -48,20 +47,20 @@
         style="@style/Widget.AppTheme.OptionButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:minWidth="0dp"
-        android:minHeight="0dp"
+        android:contentDescription="TODO"
         android:insetTop="0dp"
         android:insetBottom="0dp"
-        android:contentDescription="TODO"
-        app:icon="@drawable/ic_more_vert_24"
-        app:iconPadding="0dp"
-        app:iconGravity="textStart"
-        app:iconSize="24dp"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
         app:backgroundTint="?attr/colorSurface"
-        app:rippleColor="@color/blueaqua"
         app:cornerRadius="20dp"
+        app:icon="@drawable/ic_more_vert_24"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:iconSize="24dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:rippleColor="@color/blueaqua" />
 
     <androidx.constraintlayout.widget.Barrier
         android:id="@+id/barrierHeader"
@@ -88,34 +87,34 @@
     <com.google.android.material.button.MaterialButton
         android:id="@+id/likes"
         style="@style/Widget.AppTheme.LikeButton"
-        android:minWidth="0dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginVertical="@dimen/common_margin"
         android:layout_marginTop="@dimen/common_margin"
-        app:icon="@drawable/like_selector"
-        android:contentDescription="TODO"
         android:checkable="true"
-        app:layout_constraintStart_toStartOf="parent"
+        android:contentDescription="TODO"
+        android:minWidth="0dp"
+        app:icon="@drawable/like_selector"
         app:iconPadding="4dp"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/barrierFooter"
-        tools:text="10"/>
+        tools:text="10" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/reposts"
         style="@style/Widget.AppTheme.ShareButton"
-        android:minWidth="0dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginVertical="@dimen/common_margin"
         android:layout_marginStart="8dp"
-        android:contentDescription="TODO"
         android:checkable="true"
+        android:contentDescription="TODO"
+        android:minWidth="0dp"
         app:icon="@drawable/share_selector"
         app:iconPadding="4dp"
         app:layout_constraintStart_toEndOf="@id/likes"
         app:layout_constraintTop_toBottomOf="@id/barrierFooter"
-        tools:text="10"/>
+        tools:text="10" />
 
     <TextView
         android:id="@+id/countEyes"

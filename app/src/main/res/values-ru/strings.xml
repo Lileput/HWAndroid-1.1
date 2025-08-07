@@ -7,4 +7,5 @@
     <string name="description_post_like">Сохранить пост</string>
     <string name="error_empty_content">Содержимое не может быть пустым</string>
     <string name="menu_edit">Редактировать</string>
+    <string name="edit_message_label">Редактировние</string>
 </resources>

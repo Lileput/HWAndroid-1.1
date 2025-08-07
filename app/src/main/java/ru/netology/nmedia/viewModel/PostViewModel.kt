@@ -20,6 +20,7 @@ class PostViewModel : ViewModel() {
     private val repository: PostRepository = PostRepositoryInMemory()
     val data = repository.get()
     val edited = MutableLiveData(empty)
+    val isEditingPanelVisible = MutableLiveData(false)
     fun like(id: Long) = repository.likeById(id)
     fun reposts(id: Long) = repository.reposts(id)
     fun removeById(id: Long) = repository.removeById(id)
@@ -31,10 +32,17 @@ class PostViewModel : ViewModel() {
             }
         }
         edited.value = empty
+        isEditingPanelVisible.value = false
     }
 
     fun edit(post: Post) {
         edited.value = post
+        isEditingPanelVisible.value = true
+    }
+
+    fun cancelEdit() {
+        edited.value = empty
+        isEditingPanelVisible.value = false
     }
 
 }

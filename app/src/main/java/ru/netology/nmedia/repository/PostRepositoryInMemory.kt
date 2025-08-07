@@ -102,7 +102,12 @@ class PostRepositoryInMemory : PostRepository {
         posts = posts.map { post ->
             if (post.id == id) {
                 post.copy(
-                    share = post.share + 1
+                    shareByMe = !post.shareByMe,
+                    share = if (post.shareByMe) {
+                        post.share - 1
+                    } else {
+                        post.share + 1
+                    }
                 )
             } else {
                 post

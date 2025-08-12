@@ -44,13 +44,12 @@ class PostViewHolder(
             published.text = post.published
             content.text = post.content
             countEyes.text = ShortNumberFormatter.format(post.views)
-            countLikes.text = ShortNumberFormatter.format(post.likes)
-            countReposts.text = ShortNumberFormatter.format(post.share)
-            if (post.likeByMe) {
-                likes.setImageResource(R.drawable.ic_liked_red_24)
-            } else {
-                likes.setImageResource(R.drawable.ic_outline_like_24)
-            }
+            likes.text = ShortNumberFormatter.format(post.likes)
+            reposts.text = ShortNumberFormatter.format(post.share)
+
+            likes.isChecked = post.likeByMe
+            reposts.isChecked = post.shareByMe
+
             likes.setOnClickListener {
                 onInteractionListener.like(post)
             }
@@ -62,15 +61,17 @@ class PostViewHolder(
                 PopupMenu(it.context, it).apply {
                     inflate(R.menu.menu_post)
                     setOnMenuItemClickListener { item ->
-                        when(item.itemId) {
+                        when (item.itemId) {
                             R.id.remove -> {
                                 onInteractionListener.remove(post)
                                 true
                             }
+
                             R.id.edit -> {
                                 onInteractionListener.edit(post)
                                 true
                             }
+
                             else -> false
                         }
                     }

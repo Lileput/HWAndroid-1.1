@@ -1,8 +1,10 @@
 package ru.netology.nmedia.activity
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.launch
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModel
@@ -22,7 +24,15 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val viewModel: PostViewModel by viewModels()
-
+        val newPostLauncher = registerForActivityResult(NewPostContract) { result ->
+            result ?: return@registerForActivityResult
+            val (text, postId) = result
+            if (postId != 0L) {
+                viewModel.edit(postId, text)
+            } else {
+                viewModel.save(text)
+            }
+        }
         val adapter = PostAdapter(object : onInteractionListener {
             override fun like(post: Post) {
                 viewModel.like(post.id)
@@ -34,10 +44,17 @@ class MainActivity : AppCompatActivity() {
 
             override fun repost(post: Post) {
                 viewModel.reposts(post.id)
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, post.content)
+                }
+                val chooser = Intent.createChooser(intent, getString(R.string.chooser_share_post))
+                startActivity(chooser)
             }
 
             override fun edit(post: Post) {
-                viewModel.edit(post)
+                newPostLauncher.launch(post)
             }
         })
 
@@ -50,37 +67,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        viewModel.edited.observe(this) { post ->
-            if (post.id != 0L) {
-                binding.editPanel.visibility = View.VISIBLE
-                binding.editMessage.text = post.content
-                binding.content.setText(post.content)
-                binding.content.requestFocus()
-                AndroidUtils.showKeyboard(binding.content)
-            } else {
-                binding.editPanel.visibility = View.GONE
-            }
-        }
-        binding.cancelEdit.setOnClickListener {
-            viewModel.cancelEdit()
-            binding.content.setText("")
-            binding.content.clearFocus()
-            AndroidUtils.hideKeyboard(binding.content)
-        }
-
-        binding.save.setOnClickListener {
-            val text = binding.content.text.toString()
-            if (text.isBlank()) {
-                Toast.makeText(this@MainActivity, R.string.error_empty_content, Toast.LENGTH_LONG)
-                    .show()
-                return@setOnClickListener
-            }
-            viewModel.save(text)
-
-            binding.content.setText("")
-            binding.content.clearFocus()
-
-            AndroidUtils.hideKeyboard(binding.content)
+        binding.ok.setOnClickListener{
+            newPostLauncher.launch(null)
         }
     }
 }

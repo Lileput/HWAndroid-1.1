@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NMedia</string>
     <string name="nmedia">NMedia!</string>
@@ -7,4 +8,9 @@
     <string name="error_empty_content">Content can`t be empty</string>
     <string name="menu_edit">Edit</string>
     <string name="edit_message_label">Edit Message</string>
+    <string name="chooser_share_post">Share post</string>
+    <string name="no_video_app">No video viewing app found</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="delete_post_confirmation">Delete post?</string>
 </resources>

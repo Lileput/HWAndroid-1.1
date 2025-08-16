@@ -8,4 +8,9 @@
     <string name="error_empty_content">Содержимое не может быть пустым</string>
     <string name="menu_edit">Редактировать</string>
     <string name="edit_message_label">Редактировние</string>
+    <string name="chooser_share_post">Поделится постом</string>
+    <string name="no_video_app">Не найдено приложение для просмотра видео</string>
+    <string name="yes">Да</string>
+    <string name="no">Нет</string>
+    <string name="delete_post_confirmation">Удалить пост?</string>
 </resources>

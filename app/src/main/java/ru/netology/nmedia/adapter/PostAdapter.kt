@@ -1,7 +1,14 @@
 package ru.netology.nmedia.adapter
 
+import android.app.AlertDialog
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -36,7 +43,7 @@ class PostAdapter(
 
 class PostViewHolder(
     private val binding: CardPostBinding,
-    private val onInteractionListener: onInteractionListener
+    private val OnInteractionListener: onInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(post: Post) {
         binding.apply {
@@ -51,11 +58,11 @@ class PostViewHolder(
             reposts.isChecked = post.shareByMe
 
             likes.setOnClickListener {
-                onInteractionListener.like(post)
+                OnInteractionListener.like(post)
             }
 
             reposts.setOnClickListener {
-                onInteractionListener.repost(post)
+                OnInteractionListener.repost(post)
             }
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
@@ -63,12 +70,18 @@ class PostViewHolder(
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
                             R.id.remove -> {
-                                onInteractionListener.remove(post)
+                                AlertDialog.Builder(it.context)
+                                    .setMessage(R.string.delete_post_confirmation)
+                                    .setPositiveButton(R.string.yes) { _, _ ->
+                                        OnInteractionListener.remove(post)
+                                    }
+                                    .setNegativeButton(R.string.no, null)
+                                    .show()
                                 true
                             }
 
                             R.id.edit -> {
-                                onInteractionListener.edit(post)
+                                OnInteractionListener.edit(post)
                                 true
                             }
 
@@ -77,6 +90,24 @@ class PostViewHolder(
                     }
                 }.show()
             }
+            if (post.video != null) {
+                videoContainer.visibility = View.VISIBLE
+                playButton.contentDescription = "Воспроизвести видео"
+                videoContainer.setOnClickListener { openVideo(post.video, it.context) }
+                playButton.setOnClickListener { openVideo(post.video, it.context) }
+            } else {
+                videoContainer.visibility = View.GONE
+            }
+        }
+    }
+    private fun openVideo(videoUrl: String, context: Context) {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl)).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            Toast.makeText(context, R.string.no_video_app, Toast.LENGTH_SHORT).show()
         }
     }
 }

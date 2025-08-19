@@ -6,7 +6,7 @@ import ru.netology.nmedia.dto.Post
 
 class PostRepositoryInMemory : PostRepository {
 
-    private var nextId = 6L
+    private var nextId = 7L
     private var posts = listOf(
         Post(
             id = 1,
@@ -73,6 +73,20 @@ class PostRepositoryInMemory : PostRepository {
             share = 995,
             views = 2540000,
         ),
+        Post(
+            id = 6,
+            author = "Нетология. Университет интернет-профессий будущего",
+            published = "21 мая в 18:36",
+            content = "Привет, это новая Нетология! Когда-то Нетология начиналась с " +
+                    "интенсивов по онлайн-маркетингу. Затем появились курсы по дизайну, разработке, " +
+                    "аналитике и управлению. Мы растём сами и помогаем расти студентам: от новичков до " +
+                    "уверенных профессионалов. Но самое важное остаётся с нами: мы верим, что в каждом уже есть сила, которая заставляет хотеть больше, " +
+                    "целиться выше, бежать быстрее. Наша миссия — помочь встать на путь роста и начать цепочку перемен → http://netolo.gy/fyb",
+            likes = 999999,
+            share = 999999,
+            views = 40,
+            video = "https://rutube.ru/video/adafa1759a4cca3629cbf1519fb2e1a4/"
+        ),
     )
 
     private val data = MutableLiveData(posts)
@@ -127,6 +141,13 @@ class PostRepositoryInMemory : PostRepository {
             listOf(post.copy(id = nextId++, author = "Me", published = "Now")) + posts
         } else {
             posts.map { if (it.id != post.id) it else it.copy(content = post.content) }
+        }
+        data.value = posts
+    }
+
+    override fun edit(postId: Long, content: String) {
+        posts = posts.map { post ->
+            if (post.id == postId) post.copy(content = content) else post
         }
         data.value = posts
     }

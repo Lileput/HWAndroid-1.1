@@ -18,15 +18,17 @@ import ru.netology.nmedia.activity.ShortNumberFormatter
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 
-interface onInteractionListener {
+interface OnInteractionListener {
     fun like(post: Post)
     fun remove(post: Post)
     fun repost(post: Post)
     fun edit(post: Post)
+    fun onPlayVideo(videoUrl: String)
+    fun showDeleteConfirmation(post: Post)
 }
 
 class PostAdapter(
-    private val onInteractionListener: onInteractionListener,
+    private val onInteractionListener: OnInteractionListener,
 ) : ListAdapter<Post, PostViewHolder>(PostDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -43,7 +45,7 @@ class PostAdapter(
 
 class PostViewHolder(
     private val binding: CardPostBinding,
-    private val OnInteractionListener: onInteractionListener
+    private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(post: Post) {
         binding.apply {
@@ -58,11 +60,11 @@ class PostViewHolder(
             reposts.isChecked = post.shareByMe
 
             likes.setOnClickListener {
-                OnInteractionListener.like(post)
+                onInteractionListener.like(post)
             }
 
             reposts.setOnClickListener {
-                OnInteractionListener.repost(post)
+                onInteractionListener.repost(post)
             }
             menu.setOnClickListener {
                 PopupMenu(it.context, it).apply {
@@ -73,7 +75,7 @@ class PostViewHolder(
                                 AlertDialog.Builder(it.context)
                                     .setMessage(R.string.delete_post_confirmation)
                                     .setPositiveButton(R.string.yes) { _, _ ->
-                                        OnInteractionListener.remove(post)
+                                        onInteractionListener.remove(post)
                                     }
                                     .setNegativeButton(R.string.no, null)
                                     .show()
@@ -81,7 +83,7 @@ class PostViewHolder(
                             }
 
                             R.id.edit -> {
-                                OnInteractionListener.edit(post)
+                                onInteractionListener.edit(post)
                                 true
                             }
 
@@ -92,22 +94,11 @@ class PostViewHolder(
             }
             if (post.video != null) {
                 videoContainer.visibility = View.VISIBLE
-                playButton.contentDescription = "Воспроизвести видео"
-                videoContainer.setOnClickListener { openVideo(post.video, it.context) }
-                playButton.setOnClickListener { openVideo(post.video, it.context) }
+                videoContainer.setOnClickListener { onInteractionListener.onPlayVideo(post.video) }
+                playButton.setOnClickListener { onInteractionListener.onPlayVideo(post.video) }
             } else {
                 videoContainer.visibility = View.GONE
             }
-        }
-    }
-    private fun openVideo(videoUrl: String, context: Context) {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl)).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            }
-            context.startActivity(intent)
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(context, R.string.no_video_app, Toast.LENGTH_SHORT).show()
         }
     }
 }

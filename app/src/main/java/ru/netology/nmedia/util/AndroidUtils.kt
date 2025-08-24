@@ -11,7 +11,6 @@ object AndroidUtils {
         imm.hideSoftInputFromWindow(view.windowToken, 0)
     }
 
-    // thanks to https://stackoverflow.com/a/68925063/1219012
     fun showKeyboard(view: View) {
         view.requestFocus()
         if (view.hasWindowFocus()) {

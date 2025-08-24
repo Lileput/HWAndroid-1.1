@@ -3,34 +3,36 @@ package ru.netology.nmedia.activity
 import android.app.AlertDialog
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.Toast
-import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.SinglePostFragment.Companion.postId
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostAdapter
-import ru.netology.nmedia.databinding.ActivityMainBinding
+import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewModel.PostViewModel
 
-class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+class FeetFragment : Fragment() {
 
-        val viewModel: PostViewModel by viewModels()
-        val newPostLauncher = registerForActivityResult(NewPostContract) { result ->
-            result ?: return@registerForActivityResult
-            val (text, postId) = result
-            if (postId != 0L) {
-                viewModel.edit(postId, text)
-            } else {
-                viewModel.save(text)
-            }
-        }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        val binding = FragmentFeedBinding.inflate(inflater, container, false)
+
+        val viewModel: PostViewModel by viewModels(
+            ownerProducer = ::requireParentFragment
+        )
+
         val adapter = PostAdapter(object : OnInteractionListener {
             override fun like(post: Post) {
                 viewModel.like(post.id)
@@ -52,28 +54,44 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun edit(post: Post) {
-                newPostLauncher.launch(post)
+                findNavController().navigate(
+                    R.id.action_feetFragment_to_newPostFragment,
+                    Bundle().apply {
+                        putString(NewPostFragment.EXTRA_EDIT_POST, post.content)
+                        putLong(NewPostFragment.EXTRA_EDIT_POST_ID, post.id)
+                    }
+                )
             }
 
             override fun onPlayVideo(videoUrl: String) {
                 try {
-                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(videoUrl)))
+                    startActivity(Intent(Intent.ACTION_VIEW, videoUrl.toUri()))
                 } catch (e: ActivityNotFoundException) {
-                    Toast.makeText(this@MainActivity, R.string.no_video_app, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.no_video_app, Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
 
             override fun showDeleteConfirmation(post: Post) {
-                AlertDialog.Builder(this@MainActivity)
+                AlertDialog.Builder(requireContext())
                     .setMessage(R.string.delete_post_confirmation)
                     .setPositiveButton(R.string.yes) { _, _ -> remove(post) }
                     .setNegativeButton(R.string.no, null)
                     .show()
             }
+
+            override fun onItemClick(post: Post) {
+                findNavController().navigate(
+                    R.id.action_feetFragment_to_singlePostFragment,
+                    Bundle().apply {
+                        postId = post.id
+                    }
+                )
+            }
         })
 
         binding.list.adapter = adapter
-        viewModel.data.observe(this) { posts ->
+        viewModel.data.observe(viewLifecycleOwner) { posts ->
             val new = posts.size > adapter.currentList.size && adapter.currentList.isNotEmpty()
             adapter.submitList(posts) {
                 if (new) {
@@ -81,8 +99,9 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.ok.setOnClickListener{
-            newPostLauncher.launch(null)
+        binding.ok.setOnClickListener {
+            findNavController().navigate(R.id.action_feetFragment_to_newPostFragment)
         }
+        return binding.root
     }
 }

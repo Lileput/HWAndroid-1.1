@@ -1,14 +1,9 @@
 package ru.netology.nmedia.adapter
 
 import android.app.AlertDialog
-import android.content.ActivityNotFoundException
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -25,6 +20,7 @@ interface OnInteractionListener {
     fun edit(post: Post)
     fun onPlayVideo(videoUrl: String)
     fun showDeleteConfirmation(post: Post)
+    fun onItemClick(post: Post)
 }
 
 class PostAdapter(
@@ -58,6 +54,10 @@ class PostViewHolder(
 
             likes.isChecked = post.likeByMe
             reposts.isChecked = post.shareByMe
+
+            root.setOnClickListener {
+                onInteractionListener.onItemClick(post)
+            }
 
             likes.setOnClickListener {
                 onInteractionListener.like(post)

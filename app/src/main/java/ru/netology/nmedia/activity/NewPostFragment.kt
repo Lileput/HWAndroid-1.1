@@ -19,11 +19,19 @@ class NewPostFragment : Fragment() {
     companion object {
         const val EXTRA_EDIT_POST = "edit_post"
         const val EXTRA_EDIT_POST_ID = "edit_post_id"
+        private const val KEY_POST_PUBLISHED = "post_published"
     }
 
     private val viewModel: PostViewModel by viewModels(
         ownerProducer = ::requireParentFragment
     )
+
+    private var postPublished = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        postPublished = savedInstanceState?.getBoolean(KEY_POST_PUBLISHED) ?: false
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -33,16 +41,7 @@ class NewPostFragment : Fragment() {
         val binding = FragmentNewPostBinding.inflate(inflater, container, false)
         val editPost = arguments?.getString(EXTRA_EDIT_POST)
         val postId = arguments?.getLong(EXTRA_EDIT_POST_ID, 0L) ?: 0L
-
         val sharedText = arguments?.textArg
-
-        if (postId == 0L) {
-            viewModel.clearDraft()
-        }
-
-        if (postId != 0L || !sharedText.isNullOrBlank()) {
-            viewModel.clearDraft()
-        }
 
         when {
             !editPost.isNullOrBlank() -> {
@@ -53,16 +52,17 @@ class NewPostFragment : Fragment() {
                 binding.content.setText(sharedText)
                 viewModel.clearDraft()
             }
-            else -> {
-                if (postId == 0L) {
-                    binding.content.setText("")
+            postId == 0L && !postPublished -> {
+                val draft = viewModel.getDraft()
+                if (!draft.isNullOrEmpty()) {
+                    binding.content.setText(draft)
+                    binding.content.setSelection(draft.length)
                 } else {
-                    val draft = viewModel.getDraft()
-                    if (!draft.isNullOrEmpty()) {
-                        binding.content.setText(draft)
-                        binding.content.setSelection(draft.length)
-                    }
+                    binding.content.setText("")
                 }
+            }
+            else -> {
+                binding.content.setText("")
             }
         }
 
@@ -73,7 +73,7 @@ class NewPostFragment : Fragment() {
                     viewModel.edit(postId, content)
                 } else {
                     viewModel.save(content)
-                    viewModel.clearDraft()
+                    postPublished = true
                 }
                 AndroidUtils.hideKeyboard(requireView())
                 findNavController().navigateUp()
@@ -89,13 +89,21 @@ class NewPostFragment : Fragment() {
         return binding.root
     }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_POST_PUBLISHED, postPublished)
+    }
+
     override fun onPause() {
         super.onPause()
         val binding = requireView().let { FragmentNewPostBinding.bind(it) }
         val content = binding.content.text.toString()
         val postId = arguments?.getLong(EXTRA_EDIT_POST_ID, 0L) ?: 0L
 
-        if (postId == 0L && content.isNotEmpty()) {
+        if (postPublished) {
+            viewModel.clearDraft()
+            postPublished = false
+        } else if (postId == 0L && content.isNotEmpty()) {
             viewModel.saveDraft(content)
         }
     }

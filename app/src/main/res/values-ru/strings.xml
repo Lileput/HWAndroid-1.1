@@ -13,4 +13,9 @@
     <string name="yes">Да</string>
     <string name="no">Нет</string>
     <string name="delete_post_confirmation">Удалить пост?</string>
+    <string name="notification_user_like">%1$s поставил лайк посту %2$s</string>
+    <string name="channel_remote_name">Уведомления с сервера</string>
+    <string name="channel_remote_description">Уведомления с удалённого сервера</string>
+    <string name="notification_new_post">%s опубликовал(а) новый пост:</string>
+    <string name="new_post_summary">Новый пост</string>
 </resources>

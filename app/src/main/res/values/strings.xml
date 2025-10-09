@@ -13,4 +13,9 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="delete_post_confirmation">Delete post?</string>
+    <string name="notification_user_like">%1$s liked the post %2$s</string>
+    <string name="channel_remote_name">Server notifications</string>
+    <string name="channel_remote_description">Notifications from remote server</string>
+    <string name="notification_new_post">%s published a new post:</string>
+    <string name="new_post_summary">New post</string>
 </resources>

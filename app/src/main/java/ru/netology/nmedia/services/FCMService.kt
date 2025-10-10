@@ -43,7 +43,7 @@ class FCMService() : FirebaseMessagingService() {
     override fun onMessageReceived(message: RemoteMessage) {
         Log.i("fcm message", message.data.toString())
         message.data[action]?.let { action ->
-            when (Action.valueOf(action)) {
+            when (Action.fromValue(action)) {
                 Action.LIKE -> handleLike(
                     gson.fromJson(message.data[content], Like::class.java)
                 )
@@ -54,6 +54,8 @@ class FCMService() : FirebaseMessagingService() {
                     Log.w("FCMService", "Unknown action received: $action")
                 }
             }
+        } ?: run {
+            Log.w("FCMService", "Message received without action field: ${message.data}")
         }
     }
 

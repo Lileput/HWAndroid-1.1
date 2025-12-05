@@ -1,6 +1,8 @@
 package ru.netology.nmedia.adapter
 
+import android.app.AlertDialog
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
@@ -11,15 +13,18 @@ import ru.netology.nmedia.activity.ShortNumberFormatter
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
 
-interface onInteractionListener {
+interface OnInteractionListener {
     fun like(post: Post)
     fun remove(post: Post)
     fun repost(post: Post)
     fun edit(post: Post)
+    fun onPlayVideo(videoUrl: String)
+    fun showDeleteConfirmation(post: Post)
+    fun onItemClick(post: Post)
 }
 
 class PostAdapter(
-    private val onInteractionListener: onInteractionListener,
+    private val onInteractionListener: OnInteractionListener,
 ) : ListAdapter<Post, PostViewHolder>(PostDiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
@@ -36,7 +41,7 @@ class PostAdapter(
 
 class PostViewHolder(
     private val binding: CardPostBinding,
-    private val onInteractionListener: onInteractionListener
+    private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
     fun bind(post: Post) {
         binding.apply {
@@ -49,6 +54,10 @@ class PostViewHolder(
 
             likes.isChecked = post.likeByMe
             reposts.isChecked = post.shareByMe
+
+            root.setOnClickListener {
+                onInteractionListener.onItemClick(post)
+            }
 
             likes.setOnClickListener {
                 onInteractionListener.like(post)
@@ -63,7 +72,13 @@ class PostViewHolder(
                     setOnMenuItemClickListener { item ->
                         when (item.itemId) {
                             R.id.remove -> {
-                                onInteractionListener.remove(post)
+                                AlertDialog.Builder(it.context)
+                                    .setMessage(R.string.delete_post_confirmation)
+                                    .setPositiveButton(R.string.yes) { _, _ ->
+                                        onInteractionListener.remove(post)
+                                    }
+                                    .setNegativeButton(R.string.no, null)
+                                    .show()
                                 true
                             }
 
@@ -76,6 +91,13 @@ class PostViewHolder(
                         }
                     }
                 }.show()
+            }
+            if (post.video != null) {
+                videoContainer.visibility = View.VISIBLE
+                videoContainer.setOnClickListener { onInteractionListener.onPlayVideo(post.video) }
+                playButton.setOnClickListener { onInteractionListener.onPlayVideo(post.video) }
+            } else {
+                videoContainer.visibility = View.GONE
             }
         }
     }

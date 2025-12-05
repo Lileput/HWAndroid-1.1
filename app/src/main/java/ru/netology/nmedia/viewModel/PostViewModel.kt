@@ -1,11 +1,12 @@
 package ru.netology.nmedia.viewModel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import android.content.Context
+import androidx.lifecycle.AndroidViewModel
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryInMemory
+import ru.netology.nmedia.repository.PostRepositoryImpl
 
 private val empty = Post(
     id = 0,
@@ -16,33 +17,42 @@ private val empty = Post(
     likeByMe = false,
 )
 
-class PostViewModel : ViewModel() {
-    private val repository: PostRepository = PostRepositoryInMemory()
+class PostViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository: PostRepository = PostRepositoryImpl(
+        AppDb.getInstance(application).postDao()
+    )
     val data = repository.get()
-    val edited = MutableLiveData(empty)
-    val isEditingPanelVisible = MutableLiveData(false)
+
+    private val prefs = application.getSharedPreferences("draft_prefs", Context.MODE_PRIVATE)
+    private val draftKey = "post_draft"
+
+    fun saveDraft(content: String) {
+        prefs.edit().putString(draftKey, content).apply()
+    }
+
+    fun getDraft(): String? = prefs.getString(draftKey, null)
+
+    fun clearDraft() {
+        prefs.edit().remove(draftKey).apply()
+    }
+
     fun like(id: Long) = repository.likeById(id)
     fun reposts(id: Long) = repository.reposts(id)
     fun removeById(id: Long) = repository.removeById(id)
+
     fun save(text: String) {
-        edited.value?.let {
-            val content = text.trim()
-            if (content != it.content) {
-                repository.save(it.copy(content = content))
-            }
+        val content = text.trim()
+        if (content.isNotEmpty()) {
+            repository.save(empty.copy(
+                content = content,
+                author = "Me",
+                published = "Now"
+            ))
+            clearDraft()
         }
-        edited.value = empty
-        isEditingPanelVisible.value = false
     }
 
-    fun edit(post: Post) {
-        edited.value = post
-        isEditingPanelVisible.value = true
+    fun edit(postId: Long, newText: String) {
+        repository.edit(postId, newText.trim())
     }
-
-    fun cancelEdit() {
-        edited.value = empty
-        isEditingPanelVisible.value = false
-    }
-
 }

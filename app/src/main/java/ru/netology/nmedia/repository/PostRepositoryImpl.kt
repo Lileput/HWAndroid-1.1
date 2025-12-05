@@ -21,6 +21,7 @@ class PostRepositoryImpl() : PostRepository {
         val jsonType = "application/json".toMediaType()
         val typeToken = object : TypeToken<List<Post>>() {}
     }
+
     private val gson = Gson()
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)

@@ -82,6 +82,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
     fun reposts(id: Long) = repository.reposts(id)
     fun removeById(id: Long) {
         thread {

@@ -16,8 +16,8 @@ import ru.netology.nmedia.dto.Post
 interface OnInteractionListener {
     fun like(post: Post)
     fun remove(post: Post)
-    fun repost(post: Post)
     fun edit(post: Post)
+    fun repost(post: Post)
     fun onPlayVideo(videoUrl: String)
     fun showDeleteConfirmation(post: Post)
     fun onItemClick(post: Post)
@@ -46,13 +46,13 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            published.text = post.published
+            published.text = post.published.toString()
             content.text = post.content
             countEyes.text = ShortNumberFormatter.format(post.views)
             likes.text = ShortNumberFormatter.format(post.likes)
             reposts.text = ShortNumberFormatter.format(post.share)
 
-            likes.isChecked = post.likeByMe
+            likes.isChecked = post.likedByMe
             reposts.isChecked = post.shareByMe
 
             root.setOnClickListener {

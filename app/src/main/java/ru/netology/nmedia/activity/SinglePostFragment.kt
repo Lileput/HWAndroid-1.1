@@ -36,12 +36,18 @@ class SinglePostFragment: Fragment() {
         val postId = arguments?.postId ?: 0L
 
         viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val post = posts.find { it.id == postId }
+            val post = posts.posts.find { it.id == postId }
             post?.let {
 
                 val viewHolder = PostViewHolder(binding.postSingle, object : OnInteractionListener {
 
-                    override fun like(post: Post) = viewModel.like(post.id)
+                    override fun like(post: Post) {
+                        if (post.likedByMe) {
+                            viewModel.unlike(post.id)
+                        } else {
+                            viewModel.like(post.id)
+                        }
+                    }
                     override fun remove(post: Post) {
                         viewModel.removeById(post.id)
                         findNavController().navigateUp()

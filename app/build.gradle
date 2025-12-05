@@ -23,6 +23,10 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders["usesCleartextTraffic"] = false
+        }
+        debug {
+            manifestPlaceholders["usesCleartextTraffic"] = true
         }
     }
     compileOptions {
@@ -56,7 +60,9 @@ dependencies {
     implementation libs.gson
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+    implementation libs.androidx.swiperefreshlayout
     implementation libs.androidx.room.runtime
+    implementation (libs.okhttp)
     kapt libs.androidx.room.compiler
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.messaging

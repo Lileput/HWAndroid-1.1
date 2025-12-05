@@ -9,12 +9,12 @@ data class PostEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     val author: String = "Default Author",
-    val published: String = "Now",
+    val published: Long = 0,
     val content: String,
     val likes: Int = 0,
     val share: Int = 0,
     val views: Int = 0,
-    val likeByMe: Int = 0,
+    val likedByMe: Int = 0,
     val shareByMe: Int =0,
     val video: String? = null,
 ) {
@@ -26,7 +26,7 @@ data class PostEntity(
         likes = likes,
         share = share,
         views = views,
-        likeByMe = likeByMe != 0,
+        likedByMe = likedByMe != 0,
         shareByMe = shareByMe != 0
     )
 }
@@ -39,6 +39,6 @@ fun Post.toEntity(): PostEntity = PostEntity(
     likes = likes,
     share = share,
     views = views,
-    likeByMe = if (likeByMe) 1 else 0,
+    likedByMe = if (likedByMe) 1 else 0,
     shareByMe = if (shareByMe) 1 else 0
 )

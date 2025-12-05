@@ -18,4 +18,7 @@
     <string name="channel_remote_description">Notifications from remote server</string>
     <string name="notification_new_post">%s published a new post:</string>
     <string name="new_post_summary">New post</string>
+    <string name="network_error">Network error</string>
+    <string name="retry">Retry</string>
+    <string name="no_posts">No Posts</string>
 </resources>

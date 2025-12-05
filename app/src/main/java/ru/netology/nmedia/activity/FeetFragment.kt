@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.net.toUri
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -35,7 +36,11 @@ class FeetFragment : Fragment() {
 
         val adapter = PostAdapter(object : OnInteractionListener {
             override fun like(post: Post) {
-                viewModel.like(post.id)
+                if (post.likedByMe) {
+                    viewModel.unlike(post.id)
+                } else {
+                    viewModel.like(post.id)
+                }
             }
 
             override fun remove(post: Post) {
@@ -91,14 +96,22 @@ class FeetFragment : Fragment() {
         })
 
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val new = posts.size > adapter.currentList.size && adapter.currentList.isNotEmpty()
-            adapter.submitList(posts) {
-                if (new) {
-                    binding.list.smoothScrollToPosition(0)
-                }
-            }
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            adapter.submitList(state.posts)
+            binding.progress.isVisible = false
+            binding.errorGroup.isVisible = state.error
+            binding.empty.isVisible = state.empty
+            binding.swipeRefreshLayout.isRefreshing = state.loading
         }
+
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            viewModel.load()
+        }
+
+        binding.retry.setOnClickListener {
+            viewModel.load()
+        }
+
         binding.ok.setOnClickListener {
             findNavController().navigate(R.id.action_feetFragment_to_newPostFragment)
         }

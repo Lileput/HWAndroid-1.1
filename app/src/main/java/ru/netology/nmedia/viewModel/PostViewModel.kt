@@ -38,17 +38,19 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         load()
     }
 
-    fun load() {
-        thread {
-            _data.postValue(FeedModel(loading = true))
 
-            try {
-                val posts = repository.get()
+    fun load() {
+
+        _data.postValue(FeedModel(loading = true))
+        repository.getAllAsync(object : PostRepository.GetAllCallback {
+            override fun onSuccess(posts: List<Post>) {
                 _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
-            } catch (_: Exception) {
+            }
+
+            override fun onError(e: Exception) {
                 _data.postValue(FeedModel(error = true))
             }
-        }
+        })
     }
 
     fun saveDraft(content: String) {
@@ -62,53 +64,70 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun like(id: Long) {
-        thread {
-            try {
-                repository.likeById(id)
+        repository.likeById(id, object : PostRepository.RepositoryCallback<Unit> {
+            override fun onSuccess(data: Unit) {
                 load()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
-        }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+        })
     }
 
     fun unlike(id: Long) {
-        thread {
-            try {
-                repository.unlikeById(id)
+        repository.unlikeById(id, object : PostRepository.RepositoryCallback<Unit> {
+            override fun onSuccess(data: Unit) {
                 load()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
-        }
+
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(error = true))
+            }
+        })
     }
 
     fun reposts(id: Long) = repository.reposts(id)
     fun removeById(id: Long) {
-        thread {
-            try {
-                println("DEBUG: ViewModel removing post $id")
-                repository.removeById(id)
+        repository.removeById(id, object : PostRepository.RepositoryCallback<Unit> {
+            override fun onSuccess(data: Unit) {
+                println("DEBUG: Post $id deleted successfully")
                 load()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
-        }
+
+            override fun onError(e: Exception) {
+                e.printStackTrace()
+                _data.postValue(FeedModel(error = true))
+            }
+        })
     }
 
     fun save(text: String) {
-        thread {
-            val content = text.trim()
-            if (content.isNotEmpty()) {
-                repository.save(
-                    empty.copy(
-                        content = content,
-                        author = "Me",
-                    )
-                )
-                _postCreated.postValue(Unit)
-                clearDraft()
-            }
+        val content = text.trim()
+        if (content.isNotEmpty()) {
+            val postToSave = Post(
+                id = 0L,
+                author = "Me",
+                content = content,
+                published = System.currentTimeMillis() / 1000,
+                likes = 0,
+                likedByMe = false,
+                share = 0,
+                views = 0,
+                shareByMe = false,
+                video = null
+            )
+
+            repository.save(postToSave, object : PostRepository.RepositoryCallback<Post> {
+                override fun onSuccess(data: Post) {
+                    _postCreated.postValue(Unit)
+                    clearDraft()
+                }
+
+                override fun onError(e: Exception) {
+                    _data.postValue(FeedModel(error = true))
+                }
+            })
         }
     }
 

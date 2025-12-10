@@ -12,6 +12,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.ShortNumberFormatter
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.util.ImageLoader
 
 interface OnInteractionListener {
     fun like(post: Post)
@@ -46,7 +47,7 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            published.text = post.published.toString()
+            published.text = formatDate(post.published)
             content.text = post.content
             countEyes.text = ShortNumberFormatter.format(post.views)
             likes.text = ShortNumberFormatter.format(post.likes)
@@ -54,6 +55,7 @@ class PostViewHolder(
 
             likes.isChecked = post.likedByMe
             reposts.isChecked = post.shareByMe
+            ImageLoader.loadAvatar(avatar, post.authorAvatar)
 
             root.setOnClickListener {
                 onInteractionListener.onItemClick(post)
@@ -92,6 +94,16 @@ class PostViewHolder(
                     }
                 }.show()
             }
+
+            if (post.attachment != null && post.attachment.type == "IMAGE" && !post.attachment.url.isNullOrBlank()) {
+                attachmentContainer.visibility = View.VISIBLE
+                attachmentImage.visibility = View.VISIBLE
+                ImageLoader.loadAttachmentImage(attachmentImage, post.attachment.url)
+            } else {
+                attachmentContainer.visibility = View.GONE
+                attachmentImage.visibility = View.GONE
+            }
+
             if (post.video != null) {
                 videoContainer.visibility = View.VISIBLE
                 videoContainer.setOnClickListener { onInteractionListener.onPlayVideo(post.video) }
@@ -99,6 +111,19 @@ class PostViewHolder(
             } else {
                 videoContainer.visibility = View.GONE
             }
+        }
+    }
+
+    private fun formatDate(timestamp: Long): String {
+        val now = System.currentTimeMillis() / 1000  // Текущее время в секундах
+        val diff = now - timestamp
+
+        return when {
+            diff < 60 -> "Только что"
+            diff < 3600 -> "${diff / 60} мин."
+            diff < 86400 -> "${diff / 3600} ч."
+            diff < 2592000 -> "${diff / 86400} дн."
+            else -> "Более месяца назад"
         }
     }
 }

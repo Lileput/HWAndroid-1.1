@@ -5,7 +5,8 @@
     <color name="blueaqua">#ADD8E6</color>
     <color name="light_blue_200">#81D4FA</color>
     <color name="share_color_alpha_20">#3381D4FA</color>
-    <color name="gray_light">#D3D3D3</color>
+    <color name="gray_light">#E0E0E0</color>
     <color name="video_placeholder">#EEEEEE</color>
     <color name="play_button_background">#80000000</color>
+
 </resources>

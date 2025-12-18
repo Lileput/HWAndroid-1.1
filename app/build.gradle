@@ -66,7 +66,9 @@ dependencies {
     kapt libs.androidx.room.compiler
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.messaging
-    implementation "com.google.android.gms:play-services-base:$play_services_base_version"
+    implementation libs.play.services.base
+    implementation libs.glide
+    implementation libs.glide.transformations
     kapt "androidx.room:room-compiler:$room_version"
 
 

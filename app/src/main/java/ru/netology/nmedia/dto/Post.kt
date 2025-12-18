@@ -11,4 +11,12 @@ data class Post(
     val likedByMe: Boolean = false,
     val shareByMe: Boolean = false,
     val video: String? = null,
+    val authorAvatar: String = "",
+    val attachment: Attachment? = null,
+)
+
+data class Attachment(
+    val url: String,
+    val description: String?,
+    val type: String
 )

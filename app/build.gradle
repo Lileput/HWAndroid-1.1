@@ -37,39 +37,43 @@ android {
         jvmTarget = '11'
     }
 
-    buildFeatures.viewBinding = true
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    packaging {
+        resources {
+            excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
+        }
+    }
 }
 
 dependencies {
-
-    def activity_version = "1.10.0"
-    def lifecycle_version = "2.8.7"
-    def nav_version = "2.8.6"
-    def room_version = "2.6.1"
-    def firebase_version = "33.8.0"
-    def play_services_base_version = "18.5.0"
 
     implementation libs.androidx.core.ktx
     implementation libs.androidx.appcompat
     implementation libs.material
     implementation libs.androidx.activity
     implementation libs.androidx.constraintlayout
-    implementation "androidx.activity:activity-ktx:$activity_version"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
+    implementation libs.androidx.activity.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx.v287
+    implementation libs.androidx.lifecycle.livedata.ktx.v287
     implementation libs.gson
-    implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
-    implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
+    implementation libs.androidx.navigation.fragment.ktx.v286
+    implementation libs.androidx.navigation.ui.ktx.v286
     implementation libs.androidx.swiperefreshlayout
     implementation libs.androidx.room.runtime
     implementation (libs.okhttp)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.okhttp3.logging.interceptor)
     kapt libs.androidx.room.compiler
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.messaging
     implementation libs.play.services.base
     implementation libs.glide
     implementation libs.glide.transformations
-    kapt "androidx.room:room-compiler:$room_version"
 
 
     testImplementation libs.junit

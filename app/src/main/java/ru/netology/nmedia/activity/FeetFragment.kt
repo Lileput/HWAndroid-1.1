@@ -13,6 +13,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.SinglePostFragment.Companion.postId
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -96,12 +97,27 @@ class FeetFragment : Fragment() {
         })
 
         binding.list.adapter = adapter
+
         viewModel.data.observe(viewLifecycleOwner) { state ->
             adapter.submitList(state.posts)
-            binding.progress.isVisible = false
+            binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.empty.isVisible = state.empty
-            binding.swipeRefreshLayout.isRefreshing = state.loading
+            binding.list.isVisible = !state.loading && !state.error && !state.empty
+
+            if (state.loading) {
+                binding.swipeRefreshLayout.isRefreshing = true
+            } else {
+                binding.swipeRefreshLayout.isRefreshing = false
+            }
+
+            if (state.error) {
+                Snackbar.make(binding.root, R.string.error_loading_posts, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.retry) {
+                        viewModel.load()
+                    }
+                    .show()
+            }
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {

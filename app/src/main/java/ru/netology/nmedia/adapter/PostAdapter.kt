@@ -115,7 +115,7 @@ class PostViewHolder(
     }
 
     private fun formatDate(timestamp: Long): String {
-        val now = System.currentTimeMillis() / 1000  // Текущее время в секундах
+        val now = System.currentTimeMillis() / 1000
         val diff = now - timestamp
 
         return when {

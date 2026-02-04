@@ -2,39 +2,42 @@ package ru.netology.nmedia.viewModel
 
 import android.app.Application
 import android.content.Context
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.IOException
-import java.net.ConnectException
-import java.net.SocketTimeoutException
-import kotlin.concurrent.thread
-
-private val empty = Post(
-    id = 0,
-    author = "",
-    content = "",
-    published = 0,
-    likes = 0,
-    likedByMe = false,
-)
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository = PostRepositoryImpl()
-    private val _data = MutableLiveData(FeedModel())
-    val data: LiveData<FeedModel>
-        get() = _data
+    private val repository: PostRepository = PostRepositoryImpl(
+        AppDb.getInstance(application).postDao()
+    )
+
+    val data: LiveData<FeedModel> = repository.data.map {
+        FeedModel(posts = it, empty = it.isEmpty())
+    }
+
+    private val _state = MutableLiveData(FeedModelState())
+    val state: LiveData<FeedModelState>
+        get() = _state
 
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+
+    private val _errorMessage = SingleLiveEvent<String?>()
+    val errorMessage: LiveData<String?>
+        get() = _errorMessage
 
     private val prefs = application.getSharedPreferences("draft_prefs", Context.MODE_PRIVATE)
     private val draftKey = "post_draft"
@@ -45,17 +48,29 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun load() {
-
-        _data.postValue(FeedModel(loading = true))
-        repository.getAllAsync(object : PostRepository.GetAllCallback {
-            override fun onSuccess(posts: List<Post>) {
-                _data.value = FeedModel(posts = posts, empty = posts.isEmpty())
+        viewModelScope.launch {
+            try {
+                _state.value = FeedModelState(loading = true)
+                repository.getAll()
+                _state.value = FeedModelState()
+            } catch (e: Exception) {
+                _state.value = FeedModelState(error = true)
+                handleError(e, "Не удалось загрузить данные")
             }
+        }
+    }
 
-            override fun onError(e: Throwable) {
-                handleError(e, "Не удалось загрузить посты")
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _state.value = FeedModelState(refreshing = true)
+                repository.getAll()
+                _state.value = FeedModelState()
+            } catch (e: Exception) {
+                _state.value = FeedModelState(error = true)
+                handleError(e, "Не удалось обновить данные")
             }
-        })
+        }
     }
 
     fun saveDraft(content: String) {
@@ -69,78 +84,104 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun like(id: Long) {
-        repository.likeById(id, object : PostRepository.RepositoryCallback<Unit> {
-            override fun onSuccess(data: Unit) {
-                load()
-            }
-
-            override fun onError(e: Exception) {
+        viewModelScope.launch {
+            try {
+                _state.value = FeedModelState(refreshing = true)
+                repository.likeById(id)
+            } catch (e: Exception) {
                 handleError(e, "Не удалось поставить лайк")
+            } finally {
+                _state.value = FeedModelState()
             }
-        })
+        }
     }
 
     fun unlike(id: Long) {
-        repository.unlikeById(id, object : PostRepository.RepositoryCallback<Unit> {
-            override fun onSuccess(data: Unit) {
-                load()
-            }
-
-            override fun onError(e: Exception) {
+        viewModelScope.launch {
+            try {
+                _state.value = FeedModelState(refreshing = true)
+                repository.unlikeById(id)
+            } catch (e: Exception) {
                 handleError(e, "Не удалось убрать лайк")
+            } finally {
+                _state.value = FeedModelState()
             }
-        })
+        }
     }
 
     fun reposts(id: Long) {
-        try {
-            repository.reposts(id)
-        } catch (e: Exception) {
-            _data.postValue(FeedModel(error = true))
+        viewModelScope.launch {
+            try {
+                _state.value = FeedModelState(refreshing = true)
+                repository.reposts(id)
+            } catch (e: Exception) {
+                handleError(e, "Не удалось сделать репост")
+            } finally {
+                _state.value = FeedModelState()
+            }
         }
     }
 
     fun removeById(id: Long) {
-        try {
-            repository.removeById(id)
-            println("DEBUG: Post $id deleted successfully")
-            load()
-        } catch (e: Exception) {
-            handleError(e, "Не удалось удалить пост")
+        viewModelScope.launch {
+            try {
+                _state.value = FeedModelState(refreshing = true)
+                repository.removeById(id)
+                println("DEBUG: Post $id deleted successfully")
+            } catch (e: Exception) {
+                handleError(e, "Не удалось удалить пост")
+            } finally {
+                _state.value = FeedModelState()
+            }
         }
     }
 
     fun save(text: String) {
-        val content = text.trim()
-        if (content.isNotEmpty()) {
+        viewModelScope.launch {
             try {
-                val postToSave = Post(
-                    id = 0L,
-                    author = "Me",
-                    content = content,
-                    published = System.currentTimeMillis() / 1000,
-                    likes = 0,
-                    likedByMe = false,
-                    share = 0,
-                    views = 0,
-                    shareByMe = false,
-                    video = null
-                )
+                val content = text.trim()
+                if (content.isNotEmpty()) {
+                    _state.value = FeedModelState(loading = true)
 
-                repository.save(postToSave)
-                _postCreated.value = Unit
-                clearDraft()
+                    val postToSave = Post(
+                        id = 0L,
+                        author = "Me",
+                        authorAvatar = null,
+                        content = content,
+                        published = (System.currentTimeMillis() / 1000),
+                        likes = 0,
+                        shares = 0,
+                        views = 0,
+                        likedByMe = false,
+                        sharedByMe = false,
+                        video = null,
+                        attachment = null,
+                        comments = 0,
+                        commentByMe = false
+                    )
+
+                    repository.save(postToSave)
+                    _postCreated.value = Unit
+                    clearDraft()
+                }
             } catch (e: Exception) {
                 handleError(e, "Не удалось сохранить пост")
+            } finally {
+                _state.value = FeedModelState()
             }
         }
     }
 
     fun edit(postId: Long, newText: String) {
-        try {
-            repository.edit(postId, newText.trim())
-        } catch (e: Exception) {
-            _data.value = FeedModel(error = true)
+        viewModelScope.launch {
+            try {
+                _state.value = FeedModelState(refreshing = true)
+                repository.edit(postId, newText.trim())
+            } catch (e: Exception) {
+                handleError(e, "Не удалось отредактировать пост")
+            } finally {
+                _state.value = FeedModelState()
+            }
         }
     }
 
@@ -159,16 +200,20 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
             is IOException -> "Проблема с интернет-соединением"
-            else -> "$defaultMessage: ${e.message}"
+            else -> {
+                val message = e.message
+                if (!message.isNullOrEmpty()) {
+                    "$defaultMessage: $message"
+                } else {
+                    defaultMessage
+                }
+            }
         }
 
-        _data.postValue(
-            FeedModel(
-                error = true,
-                posts = _data.value?.posts ?: emptyList()
-            )
-        )
+        _errorMessage.postValue(errorMessage)
+    }
 
-        Toast.makeText(getApplication(), errorMessage, Toast.LENGTH_LONG).show()
+    override fun onCleared() {
+        super.onCleared()
     }
 }

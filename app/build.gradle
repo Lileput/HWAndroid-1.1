@@ -74,6 +74,7 @@ dependencies {
     implementation libs.play.services.base
     implementation libs.glide
     implementation libs.glide.transformations
+    implementation (libs.kotlinx.coroutines.core)
 
 
     testImplementation libs.junit

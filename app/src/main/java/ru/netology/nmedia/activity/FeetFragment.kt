@@ -98,30 +98,31 @@ class FeetFragment : Fragment() {
 
         binding.list.adapter = adapter
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.progress.isVisible = state.loading
-            binding.errorGroup.isVisible = state.error
-            binding.empty.isVisible = state.empty
-            binding.list.isVisible = !state.loading && !state.error && !state.empty
+        viewModel.data.observe(viewLifecycleOwner) { feedModel ->
+            adapter.submitList(feedModel.posts)
+            binding.empty.isVisible = feedModel.empty
+            binding.list.isVisible = !feedModel.empty
+        }
 
-            if (state.loading) {
-                binding.swipeRefreshLayout.isRefreshing = true
-            } else {
-                binding.swipeRefreshLayout.isRefreshing = false
-            }
 
-            if (state.error) {
-                Snackbar.make(binding.root, R.string.error_loading_posts, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.retry) {
+        viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
+            errorMessage?.let {
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
+                    .setAction("Повторить") {
                         viewModel.load()
                     }
+                    .setAnchorView(binding.ok)
                     .show()
             }
         }
 
+        viewModel.state.observe(viewLifecycleOwner) { state ->
+            binding.swipeRefreshLayout.isRefreshing = state.refreshing
+        }
+
+
         binding.swipeRefreshLayout.setOnRefreshListener {
-            viewModel.load()
+            viewModel.refresh()
         }
 
         binding.retry.setOnClickListener {

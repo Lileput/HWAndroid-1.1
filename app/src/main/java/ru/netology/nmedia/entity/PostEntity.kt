@@ -6,39 +6,62 @@ import ru.netology.nmedia.dto.Post
 
 @Entity
 data class PostEntity(
-    @PrimaryKey(autoGenerate = true)
+    @PrimaryKey(autoGenerate = false)
     val id: Long,
-    val author: String = "Default Author",
-    val published: Long = 0,
+    val author: String,
+    val authorAvatar: String? = null,
     val content: String,
+    val published: Long,
     val likes: Int = 0,
-    val share: Int = 0,
+    val shares: Int = 0,
     val views: Int = 0,
-    val likedByMe: Int = 0,
-    val shareByMe: Int =0,
+    val likedByMe: Boolean = false,
+    val sharedByMe: Boolean = false,
     val video: String? = null,
+    val comments: Int = 0,
+    val commentByMe: Boolean = false,
+    val syncStatus: SyncStatus = SyncStatus.SYNCED
 ) {
+
+    enum class SyncStatus {
+        SYNCED,
+        PENDING,
+        FAILED,
+    }
+
     fun toDto(): Post = Post(
         id = id,
         author = author,
-        published = published,
+        authorAvatar = authorAvatar,
         content = content,
+        published = published,
         likes = likes,
-        share = share,
+        shares = shares,
         views = views,
-        likedByMe = likedByMe != 0,
-        shareByMe = shareByMe != 0
+        likedByMe = likedByMe,
+        sharedByMe = sharedByMe,
+        video = video,
+        attachment = null,
+        comments = comments,
+        commentByMe = commentByMe
     )
-}
 
-fun Post.toEntity(): PostEntity = PostEntity(
-    id = id,
-    author = author,
-    published = published,
-    content = content,
-    likes = likes,
-    share = share,
-    views = views,
-    likedByMe = if (likedByMe) 1 else 0,
-    shareByMe = if (shareByMe) 1 else 0
-)
+    companion object {
+        fun fromDto(dto: Post) = PostEntity(
+            id = dto.id,
+            author = dto.author,
+            authorAvatar = dto.authorAvatar,
+            content = dto.content,
+            published = dto.published,
+            likes = dto.likes,
+            shares = dto.shares,
+            views = dto.views,
+            likedByMe = dto.likedByMe,
+            sharedByMe = dto.sharedByMe,
+            video = dto.video,
+            comments = dto.comments,
+            commentByMe = dto.commentByMe,
+            syncStatus = SyncStatus.SYNCED
+        )
+    }
+}

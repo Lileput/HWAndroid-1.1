@@ -51,10 +51,10 @@ class PostViewHolder(
             content.text = post.content
             countEyes.text = ShortNumberFormatter.format(post.views)
             likes.text = ShortNumberFormatter.format(post.likes)
-            reposts.text = ShortNumberFormatter.format(post.share)
+            reposts.text = ShortNumberFormatter.format(post.shares)
 
             likes.isChecked = post.likedByMe
-            reposts.isChecked = post.shareByMe
+            reposts.isChecked = post.sharedByMe
             ImageLoader.loadAvatar(avatar, post.authorAvatar)
 
             root.setOnClickListener {

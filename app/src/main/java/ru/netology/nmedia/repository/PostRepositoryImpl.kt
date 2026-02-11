@@ -3,6 +3,13 @@ package ru.netology.nmedia.repository
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
@@ -15,13 +22,12 @@ import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.error.AppError
 
 class PostRepositoryImpl(
     private val postDao: PostDao,
 ) : PostRepository {
-    override val data: LiveData<List<Post>> = postDao.getAll().map {
-        it.map(PostEntity::toDto)
-    }
+    override val data: Flow<List<Post>> = postDao.getAll().map { it.map {it.toDto()} }
 
     override suspend fun getAll() {
         try {
@@ -140,4 +146,23 @@ class PostRepositoryImpl(
             throw RuntimeException("Failed to edit post: ${e.message}")
         }
     }
+
+    override fun getNewer(id: Long): Flow<Int> = flow {
+        while(true) {
+            delay(10_000L)
+            val response = PostApi.service.getNewer(id)
+
+            if (!response.isSuccessful) {
+                throw RuntimeException(response.message())
+            }
+
+            val body = response.body() ?: throw RuntimeException("Response body is empty")
+            val entities = body.map { post ->
+                PostEntity.fromDto(post)
+            }
+
+            postDao.insert(entities)
+            emit(body.size)
+        }
+    }.catch { e -> throw AppError.from(e) }
 }

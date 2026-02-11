@@ -116,6 +116,10 @@ class FeetFragment : Fragment() {
             }
         }
 
+        viewModel.newerCount.observe(viewLifecycleOwner) {
+            println(it)
+        }
+
         viewModel.state.observe(viewLifecycleOwner) { state ->
             binding.swipeRefreshLayout.isRefreshing = state.refreshing
         }

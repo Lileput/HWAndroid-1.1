@@ -13,4 +13,7 @@ import ru.netology.nmedia.dto.Post
         suspend fun reposts(id: Long)
         suspend fun save(post: Post) : Post
         suspend fun edit(postId : Long, content : String)
+        suspend fun getNewPostsCount(): Flow<Int>
+        suspend fun markAllPostsAsRead()
+        suspend fun showNewPosts()
     }

@@ -31,11 +31,10 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         .catch { it.printStackTrace() }
         .asLiveData(Dispatchers.Default)
 
-    val newerCount = data.switchMap {
-        repository.getNewer(it.posts.firstOrNull()?.id ?: 0)
-            .catch { _state.postValue(FeedModelState(error = true)) }
-            .asLiveData(Dispatchers.Default)
-    }
+    val newerCount = repository.getNewer(0)
+        .catch { _state.postValue(FeedModelState(error = true)) }
+        .asLiveData(Dispatchers.Default)
+
     private val _state = MutableLiveData(FeedModelState())
     val state: LiveData<FeedModelState>
         get() = _state
@@ -53,6 +52,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         load()
+        observeNewPosts()
     }
 
 
@@ -66,6 +66,26 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 _state.value = FeedModelState(error = true)
                 handleError(e, "Не удалось загрузить данные")
             }
+        }
+    }
+
+    private fun observeNewPosts() {
+        viewModelScope.launch {
+            repository.getNewPostsCount().collect { count ->
+                _state.value = _state.value?.copy(newPostsCount = count)
+            }
+        }
+    }
+
+    fun markAllPostsAsRead() {
+        viewModelScope.launch {
+            repository.markAllPostsAsRead()
+        }
+    }
+
+    fun showNewPosts() {
+        viewModelScope.launch {
+            repository.showNewPosts()
         }
     }
 
@@ -218,11 +238,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
-
         _errorMessage.postValue(errorMessage)
-    }
-
-    override fun onCleared() {
-        super.onCleared()
     }
 }

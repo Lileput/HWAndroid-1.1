@@ -13,6 +13,8 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.SinglePostFragment.Companion.postId
@@ -20,6 +22,7 @@ import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.viewModel.PostViewModel
 
 class FeetFragment : Fragment() {
@@ -34,6 +37,9 @@ class FeetFragment : Fragment() {
         val viewModel: PostViewModel by viewModels(
             ownerProducer = ::requireParentFragment
         )
+
+        val layoutManager = LinearLayoutManager(requireContext())
+        binding.list.layoutManager = layoutManager
 
         val adapter = PostAdapter(object : OnInteractionListener {
             override fun like(post: Post) {
@@ -102,6 +108,23 @@ class FeetFragment : Fragment() {
             adapter.submitList(feedModel.posts)
             binding.empty.isVisible = feedModel.empty
             binding.list.isVisible = !feedModel.empty
+
+            val state = viewModel.state.value ?: return@observe
+            binding.retry.isVisible = state.error && feedModel.empty
+            binding.ok.isVisible = !state.error && !feedModel.empty
+            binding.errorGroup.isVisible = state.error && feedModel.empty
+        }
+
+        viewModel.state.observe(viewLifecycleOwner) { state ->
+            binding.swipeRefreshLayout.isRefreshing = state.refreshing
+            binding.progress.isVisible = state.loading
+
+            if (state.newPostsCount > 0) {
+                binding.newPostsBanner.visibility = View.VISIBLE
+                binding.newPostsCount.text = state.newPostsCount.toString()
+            } else {
+                binding.newPostsBanner.visibility = View.GONE
+            }
         }
 
 
@@ -136,6 +159,21 @@ class FeetFragment : Fragment() {
         binding.ok.setOnClickListener {
             findNavController().navigate(R.id.action_feetFragment_to_newPostFragment)
         }
+
+        binding.newPostsBanner.setOnClickListener {
+            binding.newPostsBanner.visibility = View.GONE
+            viewModel.showNewPosts()
+            fun attemptScroll(delay: Long) {
+                binding.list.postDelayed({
+                    binding.list.smoothScrollToPosition(0)
+                }, delay)
+            }
+
+            attemptScroll(300)
+            attemptScroll(600)
+            attemptScroll(1000)
+        }
+
         return binding.root
     }
 }

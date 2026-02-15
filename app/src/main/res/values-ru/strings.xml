@@ -22,4 +22,5 @@
     <string name="retry">Повторить</string>
     <string name="no_posts">Нет постов</string>
     <string name="error_loading_posts">Ошибка при загрузке постов</string>
+    <string name="new_posts">Свежие записи</string>
 </resources>

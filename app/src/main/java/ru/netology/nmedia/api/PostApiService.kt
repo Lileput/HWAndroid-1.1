@@ -58,6 +58,9 @@ interface PostApiService {
 
     @POST("posts/{id}/reposts")
     suspend fun reposts(@Path("id") id: Long): Response<Unit>
+
+    @GET("posts/{id}/newer")
+    suspend fun getNewer(@Path("id") id: Long) : Response<List<Post>>
 }
 
 object PostApi {

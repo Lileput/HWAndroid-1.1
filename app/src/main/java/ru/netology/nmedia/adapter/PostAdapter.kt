@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.ShortNumberFormatter
 import ru.netology.nmedia.databinding.CardPostBinding
+import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.ImageLoader
 
@@ -22,6 +23,7 @@ interface OnInteractionListener {
     fun onPlayVideo(videoUrl: String)
     fun showDeleteConfirmation(post: Post)
     fun onItemClick(post: Post)
+    fun onImageClick(imageUrl: String)
 }
 
 class PostAdapter(
@@ -95,22 +97,26 @@ class PostViewHolder(
                 }.show()
             }
 
-            if (post.attachment != null && post.attachment.type == "IMAGE" && !post.attachment.url.isNullOrBlank()) {
+            if (post.attachment != null && post.attachment.type == AttachmentType.IMAGE && !post.attachment.url.isNullOrBlank()) {
                 attachmentContainer.visibility = View.VISIBLE
-                attachmentImage.visibility = View.VISIBLE
-                ImageLoader.loadAttachmentImage(attachmentImage, post.attachment.url)
+
+                val fileName = post.attachment.url
+
+                ImageLoader.loadAttachmentImage(attachmentImage, fileName)
+
+                attachmentContainer.setOnClickListener {
+                    val fullUrl = "http://10.0.2.2:9999/media/$fileName"
+                    onInteractionListener.onImageClick(fullUrl)
+                }
+                attachmentImage.setOnClickListener {
+                    val fullUrl = "http://10.0.2.2:9999/media/$fileName"
+                    onInteractionListener.onImageClick(fullUrl)
+                }
             } else {
                 attachmentContainer.visibility = View.GONE
-                attachmentImage.visibility = View.GONE
             }
 
-            if (post.video != null) {
-                videoContainer.visibility = View.VISIBLE
-                videoContainer.setOnClickListener { onInteractionListener.onPlayVideo(post.video) }
-                playButton.setOnClickListener { onInteractionListener.onPlayVideo(post.video) }
-            } else {
-                videoContainer.visibility = View.GONE
-            }
+            videoContainer.visibility = View.GONE
         }
     }
 

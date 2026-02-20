@@ -23,4 +23,5 @@
     <string name="no_posts">No Posts</string>
     <string name="error_loading_posts">Error loading posts</string>
     <string name="new_posts">New Post</string>
+    <string name="save">Save</string>
 </resources>

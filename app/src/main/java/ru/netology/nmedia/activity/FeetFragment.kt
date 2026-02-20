@@ -27,6 +27,8 @@ import ru.netology.nmedia.viewModel.PostViewModel
 
 class FeetFragment : Fragment() {
 
+    private var scrollObserver : RecyclerView.AdapterDataObserver? = null
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -100,24 +102,44 @@ class FeetFragment : Fragment() {
                     }
                 )
             }
+
+            override fun onImageClick(imageUrl: String) {
+                findNavController().navigate(
+                    R.id.action_feetFragment_to_photoViewFragment,
+                    PhotoViewFragment.createArguments(imageUrl)
+                )
+            }
         })
 
         binding.list.adapter = adapter
+
+        scrollObserver = object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                if (positionStart == 0) {
+                    binding.list.smoothScrollToPosition(0)
+                    adapter.unregisterAdapterDataObserver(this)
+                }
+            }
+        }
 
         viewModel.data.observe(viewLifecycleOwner) { feedModel ->
             adapter.submitList(feedModel.posts)
             binding.empty.isVisible = feedModel.empty
             binding.list.isVisible = !feedModel.empty
-
-            val state = viewModel.state.value ?: return@observe
-            binding.retry.isVisible = state.error && feedModel.empty
-            binding.ok.isVisible = !state.error && !feedModel.empty
-            binding.errorGroup.isVisible = state.error && feedModel.empty
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
             binding.swipeRefreshLayout.isRefreshing = state.refreshing
             binding.progress.isVisible = state.loading
+
+            val currentFeedModel = viewModel.data.value
+
+            val showError = state.error && (currentFeedModel?.empty == true)
+            binding.errorGroup.isVisible = showError
+            binding.retry.isVisible = showError
+            binding.errorTitle.isVisible = showError
+
+            binding.ok.isVisible = !state.error || (currentFeedModel?.empty == false)
 
             if (state.newPostsCount > 0) {
                 binding.newPostsBanner.visibility = View.VISIBLE
@@ -125,6 +147,13 @@ class FeetFragment : Fragment() {
             } else {
                 binding.newPostsBanner.visibility = View.GONE
             }
+        }
+
+        binding.newPostsBanner.setOnClickListener {
+            binding.newPostsBanner.visibility = View.GONE
+            viewModel.showNewPosts()
+
+            scrollObserver?.let { adapter.registerAdapterDataObserver(it) }
         }
 
 
@@ -143,11 +172,6 @@ class FeetFragment : Fragment() {
             println(it)
         }
 
-        viewModel.state.observe(viewLifecycleOwner) { state ->
-            binding.swipeRefreshLayout.isRefreshing = state.refreshing
-        }
-
-
         binding.swipeRefreshLayout.setOnRefreshListener {
             viewModel.refresh()
         }
@@ -158,20 +182,6 @@ class FeetFragment : Fragment() {
 
         binding.ok.setOnClickListener {
             findNavController().navigate(R.id.action_feetFragment_to_newPostFragment)
-        }
-
-        binding.newPostsBanner.setOnClickListener {
-            binding.newPostsBanner.visibility = View.GONE
-            viewModel.showNewPosts()
-            fun attemptScroll(delay: Long) {
-                binding.list.postDelayed({
-                    binding.list.smoothScrollToPosition(0)
-                }, delay)
-            }
-
-            attemptScroll(300)
-            attemptScroll(600)
-            attemptScroll(1000)
         }
 
         return binding.root

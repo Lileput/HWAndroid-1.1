@@ -1,5 +1,6 @@
 package ru.netology.nmedia.util
 
+import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import com.bumptech.glide.Glide
@@ -9,7 +10,7 @@ import com.bumptech.glide.request.RequestOptions
 import ru.netology.nmedia.R
 
 object ImageLoader {
-    private const val BASE_URL = "http://10.0.2.2:9999/"
+    private const val BASE_URL = "http://10.0.2.2:9999"
     fun loadAvatar(imageView: ImageView, avatarName: String?) {
 
         if (avatarName.isNullOrBlank()) {
@@ -17,7 +18,7 @@ object ImageLoader {
             return
         }
 
-        val avatarUrl = "$BASE_URL/avatars/$avatarName"
+        val avatarUrl = "$BASE_URL//avatars/$avatarName"
 
         try {
             Glide.with(imageView.context)
@@ -33,18 +34,37 @@ object ImageLoader {
     }
 
     fun loadAttachmentImage(imageView: ImageView, fileName: String?) {
+
         if (fileName.isNullOrBlank()) {
             imageView.visibility = View.GONE
             return
         }
 
-        val imageUrl = "$BASE_URL/images/$fileName"
+        val imageUrl = "$BASE_URL//media/$fileName"
+
+        Log.d("ImageLoader", "Loading attachment: $imageUrl")
 
         Glide.with(imageView.context)
             .load(imageUrl)
             .placeholder(R.drawable.ic_image_placeholder)
             .error(R.drawable.ic_broken_image)
             .transition(DrawableTransitionOptions.withCrossFade())
+            .into(imageView)
+    }
+
+    fun loadFullSizeImage(imageView: ImageView, url: String?) {
+        if (url.isNullOrBlank()) {
+            imageView.setImageResource(R.drawable.ic_error)
+            return
+        }
+
+        val fixedUrl = url.replace("http://10.0.2.2:9999/media/", "http://10.0.2.2:9999//media/")
+
+        Glide.with(imageView.context)
+            .load(fixedUrl)
+            .placeholder(R.drawable.ic_placeholder)
+            .error(R.drawable.ic_error)
+            .fitCenter()
             .into(imageView)
     }
 }

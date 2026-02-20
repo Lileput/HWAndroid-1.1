@@ -47,6 +47,7 @@ android {
             excludes.add("META-INF/versions/9/OSGI-INF/MANIFEST.MF")
         }
     }
+    buildToolsVersion '36.0.0'
 }
 
 dependencies {
@@ -72,6 +73,8 @@ dependencies {
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.messaging
     implementation libs.play.services.base
+    implementation libs.imagepicker
+    implementation libs.ucrop
     implementation libs.glide
     implementation libs.glide.transformations
     implementation (libs.kotlinx.coroutines.core)

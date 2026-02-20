@@ -7,8 +7,30 @@
     android:layout_height="match_parent"
     tools:context=".activity.NewPostFragment">
 
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:title="Новый пост"
+        app:titleTextColor="@android:color/black"
+        app:navigationIcon="@drawable/ic_close_24dp" />
+
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="?attr/actionBarSize">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:paddingBottom="?actionBarSize"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    
     <EditText
         android:id="@+id/content"
+        tools:text="@tools:sample/lorem[200]"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="92dp"
@@ -19,19 +41,63 @@
         android:inputType="textMultiLine"
         android:padding="@dimen/common_margin" />
 
-    <com.google.android.material.bottomappbar.BottomAppBar
+    <FrameLayout
+        android:id="@+id/previewContainer"
+        android:visibility="gone"
+        tools:visibility="visible"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            app:layout_anchor="@+id/previewContainer"
+            app:layout_anchorGravity="center"
+            tools:srcCompat="@tools:sample/backgrounds/scenic" />
+        
+        <Button
+            android:id="@+id/removePhoto"
+            android:text="@string/menu_remove"
+            android:layout_gravity="center_horizontal|bottom"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        
+    </FrameLayout>
+
+    </LinearLayout>
+
+    </ScrollView>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:background="?colorSurface"
         android:id="@+id/bottomAppBar"
         style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom" />
+        android:layout_height="?actionBarSize"
+        android:gravity="center_vertical"
+        android:layout_gravity="bottom">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/ok"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="TODO"
-        app:layout_anchor="@id/bottomAppBar"
-        app:srcCompat="@drawable/ic_save_48" />
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Material3.Button.IconButton"
+            android:id="@+id/takePhoto"
+            app:icon="@drawable/ic_camera_24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <com.google.android.material.button.MaterialButton
+            style="@style/Widget.Material3.Button.IconButton"
+            android:id="@+id/pickPhoto"
+            app:icon="@drawable/ic_photo_24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </LinearLayout>
+
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

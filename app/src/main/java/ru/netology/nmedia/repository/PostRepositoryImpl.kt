@@ -8,11 +8,17 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dto.Attachment
+import ru.netology.nmedia.dto.AttachmentType
+import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.error.AppError
+import java.io.File
 
 class PostRepositoryImpl(
     private val postDao: PostDao,
@@ -95,7 +101,7 @@ class PostRepositoryImpl(
         }
     }
 
-    override suspend fun save(post: Post): Post {
+    override suspend fun save(post: Post, image: File?): Post {
         val tempId = -System.currentTimeMillis()
         val localPost = post.copy(id = tempId)
 
@@ -103,7 +109,15 @@ class PostRepositoryImpl(
         postDao.insert(entity)
 
         return try {
-            val response = PostApi.service.save(post)
+            val media = image?.let {
+                upload(it)
+            }
+
+            val postWithAttachment = media?.let {
+                post.copy(attachment = Attachment(url = it.id, AttachmentType.IMAGE))
+            } ?: post
+
+            val response = PostApi.service.save(postWithAttachment)
 
             if (!response.isSuccessful) {
                 throw RuntimeException(response.message())
@@ -123,6 +137,15 @@ class PostRepositoryImpl(
             throw e
         }
     }
+
+    private suspend fun upload(file: File): Media =
+        PostApi.service.upload(
+            MultipartBody.Part.createFormData(
+                "file",
+                file.name,
+                file.asRequestBody(),
+            )
+        )
 
 
     override suspend fun edit(postId: Long, content: String) {

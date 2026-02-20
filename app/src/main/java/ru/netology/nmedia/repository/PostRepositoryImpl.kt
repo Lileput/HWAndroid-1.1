@@ -1,27 +1,23 @@
 package ru.netology.nmedia.repository
 
-
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.map
-import okhttp3.Call
-import okhttp3.Callback
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import okio.IOException
-import retrofit2.HttpException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import ru.netology.nmedia.api.PostApi
-import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
+import ru.netology.nmedia.error.AppError
 
 class PostRepositoryImpl(
     private val postDao: PostDao,
 ) : PostRepository {
-    override val data: LiveData<List<Post>> = postDao.getAll().map {
-        it.map(PostEntity::toDto)
-    }
+    override val data: Flow<List<Post>> = postDao.getAll().map { it.map { it.toDto() } }
 
     override suspend fun getAll() {
         try {
@@ -43,7 +39,8 @@ class PostRepositoryImpl(
     override suspend fun likeById(id: Long): Post {
         try {
             postDao.likeById(id)
-            val localPost = postDao.getByIdSync(id)?.toDto() ?: throw RuntimeException("Post not found")
+            val localPost =
+                postDao.getByIdSync(id)?.toDto() ?: throw RuntimeException("Post not found")
 
             try {
                 if (localPost.likedByMe) {
@@ -52,7 +49,8 @@ class PostRepositoryImpl(
                     PostApi.service.unlikeById(id)
                 }
 
-                val updatedPost = PostApi.service.getById(id).body() ?: throw RuntimeException("Post not found")
+                val updatedPost =
+                    PostApi.service.getById(id).body() ?: throw RuntimeException("Post not found")
 
                 postDao.updatePost(PostEntity.fromDto(updatedPost))
 
@@ -113,7 +111,9 @@ class PostRepositoryImpl(
 
             val savedPost = response.body() ?: throw RuntimeException("Post not saved")
 
-            postDao.updatePost(PostEntity.fromDto(savedPost).copy(syncStatus = PostEntity.SyncStatus.SYNCED))
+            postDao.updatePost(
+                PostEntity.fromDto(savedPost).copy(syncStatus = PostEntity.SyncStatus.SYNCED)
+            )
 
             postDao.removeById(tempId)
 
@@ -130,7 +130,8 @@ class PostRepositoryImpl(
             postDao.edit(postId, content)
 
             try {
-                val post = PostApi.service.getById(postId).body() ?: throw RuntimeException("Post not found")
+                val post = PostApi.service.getById(postId).body()
+                    ?: throw RuntimeException("Post not found")
 
                 val updatedPost = post.copy(content = content)
                 PostApi.service.save(updatedPost)
@@ -139,5 +140,62 @@ class PostRepositoryImpl(
         } catch (e: Exception) {
             throw RuntimeException("Failed to edit post: ${e.message}")
         }
+    }
+
+    override fun getNewer(id: Long): Flow<Int> = flow {
+        while(true) {
+            delay(10_000L)
+
+            val maxId = withContext(Dispatchers.IO) {
+                postDao.getMaxId()
+            } ?: 0L
+
+            val response = PostApi.service.getNewer(maxId)
+
+            if (!response.isSuccessful) {
+                throw RuntimeException(response.message())
+            }
+
+            val body = response.body() ?: throw RuntimeException("Response body is empty")
+
+            val newPosts = mutableListOf<Post>()
+            for (post in body) {
+                if (!postDao.postExists(post.id)) {
+                    newPosts.add(post)
+                }
+            }
+
+            if (newPosts.isNotEmpty()) {
+                val entities = newPosts.map { post ->
+                    PostEntity.fromDto(post).copy(
+                        isNew = true,
+                        hidden = true
+                    )
+                }
+
+                postDao.insert(entities)
+                emit(postDao.getNewHiddenPostsCount())
+            } else {
+                emit(0)
+            }
+        }
+    }.catch { e -> throw AppError.from(e) }
+
+    override suspend fun showNewPosts() {
+
+        postDao.showAllHiddenPosts()
+
+        postDao.markAllAsNotNew()
+    }
+
+    override suspend fun getNewPostsCount(): Flow<Int> = flow {
+        while (true) {
+            emit(postDao.getNewPostsCount())
+            delay(1000L)
+        }
+    }
+
+    override suspend fun markAllPostsAsRead() {
+        postDao.markAllAsNotNew()
     }
 }

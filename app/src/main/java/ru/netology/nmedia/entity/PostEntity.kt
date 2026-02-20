@@ -20,7 +20,9 @@ data class PostEntity(
     val video: String? = null,
     val comments: Int = 0,
     val commentByMe: Boolean = false,
-    val syncStatus: SyncStatus = SyncStatus.SYNCED
+    val syncStatus: SyncStatus = SyncStatus.SYNCED,
+    val isNew: Boolean = false,
+    val hidden: Boolean = true
 ) {
 
     enum class SyncStatus {
@@ -61,7 +63,9 @@ data class PostEntity(
             video = dto.video,
             comments = dto.comments,
             commentByMe = dto.commentByMe,
-            syncStatus = SyncStatus.SYNCED
+            syncStatus = SyncStatus.SYNCED,
+            isNew = false,
+            hidden = false
         )
     }
 }

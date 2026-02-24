@@ -18,7 +18,7 @@ object ImageLoader {
             return
         }
 
-        val avatarUrl = "$BASE_URL//avatars/$avatarName"
+        val avatarUrl = "$BASE_URL/avatars/$avatarName"
 
         try {
             Glide.with(imageView.context)
@@ -40,9 +40,7 @@ object ImageLoader {
             return
         }
 
-        val imageUrl = "$BASE_URL//media/$fileName"
-
-        Log.d("ImageLoader", "Loading attachment: $imageUrl")
+        val imageUrl = "$BASE_URL/media/$fileName"
 
         Glide.with(imageView.context)
             .load(imageUrl)
@@ -53,15 +51,14 @@ object ImageLoader {
     }
 
     fun loadFullSizeImage(imageView: ImageView, url: String?) {
+
         if (url.isNullOrBlank()) {
             imageView.setImageResource(R.drawable.ic_error)
             return
         }
 
-        val fixedUrl = url.replace("http://10.0.2.2:9999/media/", "http://10.0.2.2:9999//media/")
-
         Glide.with(imageView.context)
-            .load(fixedUrl)
+            .load(url)
             .placeholder(R.drawable.ic_placeholder)
             .error(R.drawable.ic_error)
             .fitCenter()

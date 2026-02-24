@@ -1,7 +1,9 @@
 package ru.netology.nmedia.entity
 
+import androidx.room.Embedded
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Post
 
 @Entity
@@ -22,7 +24,9 @@ data class PostEntity(
     val commentByMe: Boolean = false,
     val syncStatus: SyncStatus = SyncStatus.SYNCED,
     val isNew: Boolean = false,
-    val hidden: Boolean = true
+    val hidden: Boolean = true,
+    @Embedded
+    val attachment: Attachment?,
 ) {
 
     enum class SyncStatus {
@@ -43,9 +47,9 @@ data class PostEntity(
         likedByMe = likedByMe,
         sharedByMe = sharedByMe,
         video = video,
-        attachment = null,
         comments = comments,
-        commentByMe = commentByMe
+        commentByMe = commentByMe,
+        attachment = attachment,
     )
 
     companion object {
@@ -65,7 +69,8 @@ data class PostEntity(
             commentByMe = dto.commentByMe,
             syncStatus = SyncStatus.SYNCED,
             isNew = false,
-            hidden = false
+            hidden = false,
+            attachment = dto.attachment
         )
     }
 }

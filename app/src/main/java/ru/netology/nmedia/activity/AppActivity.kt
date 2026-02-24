@@ -69,7 +69,7 @@ class AppActivity : AppCompatActivity() {
                             true
                         }
                         R.id.signUp -> {
-                            findNavController(R.id.nav_host_fragment).navigate(R.id.signUpFragment)  // ← ИСПРАВЛЕНО
+                            findNavController(R.id.nav_host_fragment).navigate(R.id.signUpFragment)
                             true
                         }
                         R.id.logout -> {

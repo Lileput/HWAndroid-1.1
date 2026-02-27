@@ -52,21 +52,22 @@ class NewPostFragment : Fragment() {
     ): View {
         val binding = FragmentNewPostBinding.inflate(inflater, container, false)
 
-        (requireActivity() as AppCompatActivity).setSupportActionBar(binding.toolbar)
-
-        binding.toolbar.setNavigationOnClickListener {
-            findNavController().navigateUp()
-        }
-
         val editPost = arguments?.getString(EXTRA_EDIT_POST)
         val postId = arguments?.getLong(EXTRA_EDIT_POST_ID, 0L) ?: 0L
         val sharedText = arguments?.textArg
+
+        (requireActivity() as AppCompatActivity).supportActionBar?.apply {
+            title = when {
+                !editPost.isNullOrBlank() -> "Редактирование"
+                else -> "Новый пост"
+            }
+            setDisplayHomeAsUpEnabled(true)
+        }
 
         when {
             !editPost.isNullOrBlank() -> {
                 binding.content.setText(editPost)
                 viewModel.clearDraft()
-                binding.toolbar.title = "Редактирование"
             }
 
             !sharedText.isNullOrBlank() -> {
@@ -126,7 +127,8 @@ class NewPostFragment : Fragment() {
                                 if (postId != 0L) {
                                     viewModel.edit(postId, content)
                                 } else {
-                                    viewModel.save(content)
+                                    viewModel.saveWithCheck(content)
+                                    postPublished = true
                                 }
                                 AndroidUtils.hideKeyboard(requireView())
                                 true
@@ -169,6 +171,24 @@ class NewPostFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        (requireActivity() as AppCompatActivity).supportActionBar?.setHomeActionContentDescription(
+            getString(R.string.navigate_up)
+        )
+
+        (requireActivity() as AppCompatActivity).supportActionBar?.setHomeButtonEnabled(true)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        (requireActivity() as AppCompatActivity).supportActionBar?.apply {
+            title = getString(R.string.app_name)
+            setDisplayHomeAsUpEnabled(false)
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

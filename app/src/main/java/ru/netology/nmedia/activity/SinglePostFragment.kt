@@ -82,6 +82,13 @@ class SinglePostFragment: Fragment() {
 
                     override fun onItemClick(post: Post) {
                     }
+
+                    override fun onImageClick(imageUrl: String) {
+                        findNavController().navigate(
+                            R.id.action_feetFragment_to_photoViewFragment,
+                            PhotoViewFragment.createArguments(imageUrl)
+                        )
+                    }
                 })
 
                 viewHolder.bind(it)

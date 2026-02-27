@@ -11,9 +11,11 @@ import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.dto.Post
@@ -30,8 +32,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         AppDb.getInstance(application).postDao()
     )
 
-    val data: LiveData<FeedModel> = repository.data.map { list: List<Post> -> FeedModel(list, list.isEmpty())}
-        .catch { it.printStackTrace() }
+    val data: LiveData<FeedModel> = AppAuth.getInstance().authState.flatMapLatest { token ->
+        repository.data
+            .map { posts ->
+                FeedModel(
+                    posts.map { post ->
+                    post.copy(ownedByMe = post.authorId == token?.id)
+                },
+                    empty = posts.isEmpty(),
+                )
+            }
+    }
         .asLiveData(Dispatchers.Default)
 
     val newerCount = repository.getNewer(0)
@@ -56,6 +67,12 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _photo = MutableLiveData<PhotoModel?>(null)
     val photo: LiveData<PhotoModel?>
         get() = _photo
+
+    private val _shouldAuthenticate = SingleLiveEvent<Unit>()
+    val shouldAuthenticate: LiveData<Unit> get() = _shouldAuthenticate
+
+    private val _shouldConfirmLogout = SingleLiveEvent<Unit>()
+    val shouldConfirmLogout: LiveData<Unit> get() = _shouldConfirmLogout
 
     init {
         load()
@@ -183,6 +200,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
                         id = 0L,
                         author = "Me",
                         authorAvatar = null,
+                        authorId = 0,
                         content = content,
                         published = (System.currentTimeMillis() / 1000),
                         likes = 0,
@@ -256,5 +274,29 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun removePhoto() {
         _photo.value = null
+    }
+
+    fun checkAuthBeforeAction(action: () -> Unit) {
+        if (AppAuth.getInstance().authState.value == null) {
+            _shouldAuthenticate.call()
+        } else {
+            action()
+        }
+    }
+
+    fun saveWithCheck(text: String) {
+        checkAuthBeforeAction { save(text) }
+    }
+
+    fun likeWithCheck(id: Long) {
+        checkAuthBeforeAction { like(id) }
+    }
+
+    fun unlikeWithCheck(id: Long) {
+        checkAuthBeforeAction { unlike(id) }
+    }
+
+    fun confirmLogout() {
+        _shouldConfirmLogout.call()
     }
 }

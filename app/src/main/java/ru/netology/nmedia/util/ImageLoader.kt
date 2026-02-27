@@ -26,6 +26,7 @@ object ImageLoader {
                 .placeholder(R.drawable.ic_baseline_person_24)
                 .error(R.drawable.ic_baseline_person_24)
                 .transition(DrawableTransitionOptions.withCrossFade())
+                .timeout(10_000)
                 .apply(RequestOptions.bitmapTransform(CircleCrop()))
                 .into(imageView)
         } catch (e: Exception) {
@@ -47,6 +48,7 @@ object ImageLoader {
             .placeholder(R.drawable.ic_image_placeholder)
             .error(R.drawable.ic_broken_image)
             .transition(DrawableTransitionOptions.withCrossFade())
+            .timeout(10_000)
             .into(imageView)
     }
 
@@ -62,6 +64,7 @@ object ImageLoader {
             .placeholder(R.drawable.ic_placeholder)
             .error(R.drawable.ic_error)
             .fitCenter()
+            .timeout(10_000)
             .into(imageView)
     }
 }

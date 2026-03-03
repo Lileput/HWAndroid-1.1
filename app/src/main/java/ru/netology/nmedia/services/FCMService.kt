@@ -53,16 +53,15 @@ class FCMService() : FirebaseMessagingService() {
         if (contentJson == null) { return }
 
         val json = JSONObject(contentJson)
-        val recipientId = json.optLong("recipientId")
-        val currentUserId = AppAuth.getInstance().authState.value?.id
-
-        Log.d("FCMService", "recipientId: $recipientId, currentUserId: $currentUserId")
+        val recipientId = if (json.has("recipientId") && !json.isNull("recipientId")) {
+            json.optLong("recipientId")
+        } else {
+            null
+        }
+        val currentUserId = AppAuth.getInstance().authState.value?.id ?: 0L
 
         when {
-            recipientId == 0L -> {
-                showSimpleNotification(json.optString("content", "Новое уведомление"))
-            }
-            recipientId == currentUserId -> {
+            recipientId == null || recipientId == currentUserId -> {
                 showSimpleNotification(json.optString("content", "Новое уведомление"))
             }
             else -> {

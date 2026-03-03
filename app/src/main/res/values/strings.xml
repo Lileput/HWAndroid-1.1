@@ -24,4 +24,19 @@
     <string name="error_loading_posts">Error loading posts</string>
     <string name="new_posts">New Post</string>
     <string name="save">Save</string>
+    <string name="logout">Logout</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="error_empty_fields">Empty fields</string>
+    <string name="name">Имя</string>
+    <string name="confirm_password">Confirm password</string>
+    <string name="error_passwords_not_match">Password not match</string>
+    <string name="auth_required">Authorization required</string>
+    <string name="auth_required_message">You must be logged in to perform this action.</string>
+    <string name="confirm_logout">Exit confirmation</string>
+    <string name="confirm_logout_message">Are you sure you want to exit?</string>
+    <string name="cancel">Cancel</string>
+    <string name="navigate_up">Back</string>
 </resources>

@@ -42,4 +42,14 @@
         android:id="@+id/photoViewFragment"
         android:name="ru.netology.nmedia.activity.PhotoViewFragment"
         android:label="PhotoViewFragment" />
+    <fragment
+        android:id="@+id/signInFragment"
+        android:name="ru.netology.nmedia.activity.SignInFragment"
+        android:label="Вход"
+        tools:layout="@layout/fragment_sign_in" />
+    <fragment
+        android:id="@+id/signUpFragment"
+        android:name="ru.netology.nmedia.activity.SignUpFragment"
+        android:label="Регистрация"
+        tools:layout="@layout/fragment_sign_up" />
 </navigation>

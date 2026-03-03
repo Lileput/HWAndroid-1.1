@@ -20,6 +20,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.SinglePostFragment.Companion.postId
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostAdapter
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
@@ -46,9 +47,9 @@ class FeetFragment : Fragment() {
         val adapter = PostAdapter(object : OnInteractionListener {
             override fun like(post: Post) {
                 if (post.likedByMe) {
-                    viewModel.unlike(post.id)
+                    viewModel.unlikeWithCheck(post.id)
                 } else {
-                    viewModel.like(post.id)
+                    viewModel.likeWithCheck(post.id)
                 }
             }
 
@@ -170,6 +171,29 @@ class FeetFragment : Fragment() {
 
         viewModel.newerCount.observe(viewLifecycleOwner) {
             println(it)
+        }
+
+        viewModel.shouldAuthenticate.observe(viewLifecycleOwner) {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.auth_required)
+                .setMessage(R.string.auth_required_message)
+                .setPositiveButton(R.string.sign_in) { _, _ ->
+                    findNavController().navigate(R.id.signInFragment)
+                }
+                .setNegativeButton(R.string.cancel, null)
+                .show()
+        }
+
+        viewModel.shouldConfirmLogout.observe(viewLifecycleOwner) {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.confirm_logout)
+                .setMessage(R.string.confirm_logout_message)
+                .setPositiveButton(R.string.yes) { _, _ ->
+                    AppAuth.getInstance().clear()
+                    findNavController().navigateUp()
+                }
+                .setNegativeButton(R.string.no, null)
+                .show()
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {

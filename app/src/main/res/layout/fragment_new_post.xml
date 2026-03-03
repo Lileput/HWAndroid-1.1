@@ -7,20 +7,10 @@
     android:layout_height="match_parent"
     tools:context=".activity.NewPostFragment">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:title="Новый пост"
-        app:titleTextColor="@android:color/black"
-        app:navigationIcon="@drawable/ic_close_24dp" />
-
-
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="?attr/actionBarSize">
+        android:layout_height="wrap_content">
+
 
     <LinearLayout
         android:orientation="vertical"

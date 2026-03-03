@@ -18,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import org.json.JSONObject
 import ru.netology.nmedia.R
 import ru.netology.nmedia.api.PostApi
 import ru.netology.nmedia.auth.AppAuth
@@ -48,17 +49,21 @@ class FCMService() : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        val recipientId = message.data["recipientId"]?.toLongOrNull()
+        val contentJson = message.data[content]
+        if (contentJson == null) { return }
+
+        val json = JSONObject(contentJson)
+        val recipientId = json.optLong("recipientId")
         val currentUserId = AppAuth.getInstance().authState.value?.id
 
+        Log.d("FCMService", "recipientId: $recipientId, currentUserId: $currentUserId")
+
         when {
-            recipientId == null || recipientId == currentUserId -> {
-                val action = message.data["action"]
-                if (action != null) {
-                    processMessage(message) // ваша существующая обработка
-                } else {
-                    showSimpleNotification(message.data["content"] ?: "Новое уведомление")
-                }
+            recipientId == 0L -> {
+                showSimpleNotification(json.optString("content", "Новое уведомление"))
+            }
+            recipientId == currentUserId -> {
+                showSimpleNotification(json.optString("content", "Новое уведомление"))
             }
             else -> {
                 resendPushToken()

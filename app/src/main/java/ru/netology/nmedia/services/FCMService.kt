@@ -14,7 +14,14 @@ import androidx.core.app.NotificationManagerCompat
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import ru.netology.nmedia.R
+import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.PushToken
 import java.util.jar.Manifest
 import kotlin.random.Random
 
@@ -28,7 +35,7 @@ class FCMService() : FirebaseMessagingService() {
 
     override fun onCreate() {
         super.onCreate()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val name = getString(R.string.channel_remote_name)
             val descriptionText = getString(R.string.channel_remote_description)
             val importance = NotificationManager.IMPORTANCE_DEFAULT
@@ -41,7 +48,37 @@ class FCMService() : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-        Log.i("fcm message", message.data.toString())
+        val recipientId = message.data["recipientId"]?.toLongOrNull()
+        val currentUserId = AppAuth.getInstance().authState.value?.id
+
+        when {
+            recipientId == null || recipientId == currentUserId -> {
+                val action = message.data["action"]
+                if (action != null) {
+                    processMessage(message) // ваша существующая обработка
+                } else {
+                    showSimpleNotification(message.data["content"] ?: "Новое уведомление")
+                }
+            }
+            else -> {
+                resendPushToken()
+            }
+        }
+    }
+
+    private fun showSimpleNotification(content: String) {
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle("Новое уведомление")
+            .setContentText(content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .build()
+
+        notify(notification)
+    }
+
+    private fun processMessage(message: RemoteMessage) {
         message.data[action]?.let { action ->
             when (Action.fromValue(action)) {
                 Action.LIKE -> handleLike(
@@ -51,7 +88,6 @@ class FCMService() : FirebaseMessagingService() {
                     gson.fromJson(message.data[content], NewPost::class.java)
                 )
                 Action.UNKNOWN -> {
-                    Log.w("FCMService", "Unknown action received: $action")
                 }
             }
         } ?: run {
@@ -59,15 +95,27 @@ class FCMService() : FirebaseMessagingService() {
         }
     }
 
+    private fun resendPushToken() {
+        CoroutineScope(Dispatchers.IO).launch {
+            runCatching {
+                val token = com.google.firebase.messaging.FirebaseMessaging.getInstance().token.await()
+                PostApi.service.sendPushToken(PushToken(token))
+                Log.d("FCMService", "Push token resent")
+            }.onFailure {
+                Log.e("FCMService", "Failed to resend push token", it)
+            }
+        }
+    }
+
     private fun handleLike(like: Like) {
-        val notification = NotificationCompat.Builder(this,channelId)
+        val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(
                 getString(
                     R.string.notification_user_like,
                     like.userName,
                     like.postAuthor,
-                    )
+                )
             )
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
@@ -127,10 +175,10 @@ class FCMService() : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        Log.i("fcm token", token)
+        AppAuth.getInstance().sendPushToken(token)
     }
 
-    enum class Action{
+    enum class Action {
         LIKE,
         NEW_POST,
         UNKNOWN;
@@ -147,10 +195,10 @@ class FCMService() : FirebaseMessagingService() {
     }
 
     data class Like(
-       val userId: Long,
-       val userName: String,
-       val postId: Long,
-       val postAuthor: String,
+        val userId: Long,
+        val userName: String,
+        val postId: Long,
+        val postAuthor: String,
     )
 
     data class NewPost(

@@ -22,6 +22,7 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.dto.Token
 import java.util.concurrent.TimeUnit
 
@@ -94,6 +95,9 @@ interface PostApiService {
     @FormUrlEncoded
     @POST("users/registration")
     suspend fun registration(@Field("login") login: String, @Field("pass") pass: String, @Field("name") name: String): Response<Token>
+
+    @POST("users/push-tokens")
+    suspend fun sendPushToken(@Body token: PushToken)
 }
 
 object PostApi {

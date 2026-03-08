@@ -16,15 +16,17 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import com.github.dhaval2404.imagepicker.ImagePicker
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.AppActivity.Companion.textArg
 import ru.netology.nmedia.databinding.FragmentNewPostBinding
 import ru.netology.nmedia.util.AndroidUtils
 import ru.netology.nmedia.viewModel.PostViewModel
 
+@AndroidEntryPoint
 class NewPostFragment : Fragment() {
 
     companion object {
@@ -34,9 +36,7 @@ class NewPostFragment : Fragment() {
         private const val MAX_SIZE_PX = 2048
     }
 
-    private val viewModel: PostViewModel by viewModels(
-        ownerProducer = ::requireParentFragment
-    )
+    private val viewModel: PostViewModel by hiltNavGraphViewModels(R.id.nav_main)
 
     private var postPublished = false
 

@@ -11,20 +11,26 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostViewHolder
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentSinglePostBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.util.LongArg
 import ru.netology.nmedia.viewModel.PostViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class SinglePostFragment: Fragment() {
 
-    private val viewModel : PostViewModel by viewModels(
-        ownerProducer = ::requireParentFragment
-    )
+    @Inject
+    lateinit var appAuth: AppAuth
+
+    private val viewModel: PostViewModel by hiltNavGraphViewModels(R.id.nav_main)
 
     override fun onCreateView(
         inflater: LayoutInflater,

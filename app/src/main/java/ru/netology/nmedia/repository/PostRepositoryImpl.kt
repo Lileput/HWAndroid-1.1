@@ -4,13 +4,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.dao.PostDao
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
@@ -19,15 +18,17 @@ import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
 import ru.netology.nmedia.error.AppError
 import java.io.File
+import javax.inject.Inject
 
-class PostRepositoryImpl(
+class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
+    private val apiService: PostApiService,
 ) : PostRepository {
     override val data: Flow<List<Post>> = postDao.getAll().map { it.map { it.toDto() } }
 
     override suspend fun getAll() {
         try {
-            val response = PostApi.service.getAll()
+            val response = apiService.getAll()
 
             if (!response.isSuccessful) {
                 throw RuntimeException(response.message())
@@ -50,13 +51,13 @@ class PostRepositoryImpl(
 
             try {
                 if (localPost.likedByMe) {
-                    PostApi.service.likeById(id)
+                    apiService.likeById(id)
                 } else {
-                    PostApi.service.unlikeById(id)
+                    apiService.unlikeById(id)
                 }
 
                 val updatedPost =
-                    PostApi.service.getById(id).body() ?: throw RuntimeException("Post not found")
+                    apiService.getById(id).body() ?: throw RuntimeException("Post not found")
 
                 postDao.updatePost(PostEntity.fromDto(updatedPost))
 
@@ -79,7 +80,7 @@ class PostRepositoryImpl(
             postDao.removeById(id)
 
             try {
-                PostApi.service.removeById(id)
+                apiService.removeById(id)
             } catch (e: Exception) {
                 throw e
             }
@@ -93,7 +94,7 @@ class PostRepositoryImpl(
             postDao.reposts(id)
 
             try {
-                PostApi.service.reposts(id)
+                apiService.reposts(id)
             } catch (e: Exception) {
             }
         } catch (e: Exception) {
@@ -117,7 +118,7 @@ class PostRepositoryImpl(
                 post.copy(attachment = Attachment(url = it.id, AttachmentType.IMAGE))
             } ?: post
 
-            val response = PostApi.service.save(postWithAttachment)
+            val response = apiService.save(postWithAttachment)
 
             if (!response.isSuccessful) {
                 throw RuntimeException(response.message())
@@ -139,7 +140,7 @@ class PostRepositoryImpl(
     }
 
     private suspend fun upload(file: File): Media =
-        PostApi.service.upload(
+        apiService.upload(
             MultipartBody.Part.createFormData(
                 "file",
                 file.name,
@@ -153,11 +154,11 @@ class PostRepositoryImpl(
             postDao.edit(postId, content)
 
             try {
-                val post = PostApi.service.getById(postId).body()
+                val post = apiService.getById(postId).body()
                     ?: throw RuntimeException("Post not found")
 
                 val updatedPost = post.copy(content = content)
-                PostApi.service.save(updatedPost)
+                apiService.save(updatedPost)
             } catch (e: Exception) {
             }
         } catch (e: Exception) {
@@ -166,14 +167,14 @@ class PostRepositoryImpl(
     }
 
     override fun getNewer(id: Long): Flow<Int> = flow {
-        while(true) {
+        while (true) {
             delay(10_000L)
 
             val maxId = withContext(Dispatchers.IO) {
                 postDao.getMaxId()
             } ?: 0L
 
-            val response = PostApi.service.getNewer(maxId)
+            val response = apiService.getNewer(maxId)
 
             if (!response.isSuccessful) {
                 throw RuntimeException(response.message())

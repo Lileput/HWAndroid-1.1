@@ -11,11 +11,12 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.SinglePostFragment.Companion.postId
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -23,13 +24,16 @@ import ru.netology.nmedia.adapter.PostAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.viewModel.PostViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FeetFragment : Fragment() {
 
-    private var scrollObserver : RecyclerView.AdapterDataObserver? = null
+    @Inject
+    lateinit var appAuth: AppAuth
 
+    private var scrollObserver : RecyclerView.AdapterDataObserver? = null
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -37,9 +41,7 @@ class FeetFragment : Fragment() {
     ): View {
         val binding = FragmentFeedBinding.inflate(inflater, container, false)
 
-        val viewModel: PostViewModel by viewModels(
-            ownerProducer = ::requireParentFragment
-        )
+        val viewModel: PostViewModel by hiltNavGraphViewModels(R.id.nav_main)
 
         val layoutManager = LinearLayoutManager(requireContext())
         binding.list.layoutManager = layoutManager
@@ -189,7 +191,7 @@ class FeetFragment : Fragment() {
                 .setTitle(R.string.confirm_logout)
                 .setMessage(R.string.confirm_logout_message)
                 .setPositiveButton(R.string.yes) { _, _ ->
-                    AppAuth.getInstance().clear()
+                    appAuth.clear()
                     findNavController().navigateUp()
                 }
                 .setNegativeButton(R.string.no, null)

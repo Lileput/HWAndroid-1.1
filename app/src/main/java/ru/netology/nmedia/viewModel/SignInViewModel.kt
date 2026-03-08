@@ -4,13 +4,19 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.auth.AppAuth
 import java.io.IOException
+import javax.inject.Inject
 
-class SignInViewModel : ViewModel() {
+@HiltViewModel
+class SignInViewModel @Inject constructor(
+    private val apiService: PostApiService,
+    private val appAuth: AppAuth
+) : ViewModel() {
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -27,7 +33,7 @@ class SignInViewModel : ViewModel() {
                 _isLoading.value = true
                 _error.value = null
 
-                val response = PostApi.service.authentication(login, pass)
+                val response = apiService.authentication(login, pass)
 
                 if (!response.isSuccessful) {
                     _error.value = when (response.code()) {
@@ -39,7 +45,7 @@ class SignInViewModel : ViewModel() {
 
                 val token = response.body()
                 if (token != null) {
-                    AppAuth.getInstance().setAuth(token)
+                    appAuth.setAuth(token)
                     _success.value = true
                 } else {
                     _error.value = "Пустой ответ от сервера"

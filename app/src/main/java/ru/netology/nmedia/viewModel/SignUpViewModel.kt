@@ -4,14 +4,18 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.auth.AppAuth
-import java.io.IOException
+import javax.inject.Inject
 
-class SignUpViewModel : ViewModel() {
+@HiltViewModel
+class SignUpViewModel @Inject constructor(
+    private val apiService: PostApiService,
+    private val appAuth: AppAuth
+) : ViewModel() {
 
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> = _isLoading
@@ -28,7 +32,7 @@ class SignUpViewModel : ViewModel() {
                 _isLoading.value = true
                 _error.value = null
 
-                val response = PostApi.service.registration(login, pass, name)
+                val response = apiService.registration(login, pass, name)
 
                 if (!response.isSuccessful) {
                     _error.value = when (response.code()) {
@@ -47,12 +51,12 @@ class SignUpViewModel : ViewModel() {
 
                 for (attempt in 1..3) {
                     try {
-                        val loginResponse = PostApi.service.authentication(login, pass)
+                        val loginResponse = apiService.authentication(login, pass)
 
                         if (loginResponse.isSuccessful) {
                             val loginToken = loginResponse.body()
                             if (loginToken != null) {
-                                AppAuth.getInstance().setAuth(loginToken)
+                                appAuth.setAuth(loginToken)
                                 loginSuccess = true
                                 break
                             }
@@ -76,8 +80,9 @@ class SignUpViewModel : ViewModel() {
                     _success.value = true
                 } else {
                     if (regToken != null) {
-                        AppAuth.getInstance().setAuth(regToken)
-                        _error.value = "Регистрация успешна, но автоматический вход не удался. Попробуйте войти вручную."
+                        appAuth.setAuth(regToken)
+                        _error.value =
+                            "Регистрация успешна, но автоматический вход не удался. Попробуйте войти вручную."
                         _success.value = true
                     } else {
                         _error.value = loginError ?: "Неизвестная ошибка при входе"

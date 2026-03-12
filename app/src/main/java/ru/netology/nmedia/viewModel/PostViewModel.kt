@@ -1,44 +1,47 @@
 package ru.netology.nmedia.viewModel
 
-import android.app.Application
-import android.content.Context
+import android.content.SharedPreferences
 import android.net.Uri
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.db.AppDb
-import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
-import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.io.File
 import java.io.IOException
+import javax.inject.Inject
 
-class PostViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository: PostRepository = PostRepositoryImpl(
-        AppDb.getInstance(application).postDao()
-    )
+@HiltViewModel
+class PostViewModel @Inject constructor(
+    private val repository: PostRepository,
+    private val appAuth: AppAuth,
+    private val prefs: SharedPreferences,
+) : ViewModel() {
 
-    val data: LiveData<FeedModel> = AppAuth.getInstance().authState.flatMapLatest { token ->
+    private val draftKey = "post_draft"
+
+    val data: LiveData<FeedModel> = appAuth.authState.flatMapLatest { token ->
         repository.data
             .map { posts ->
                 FeedModel(
                     posts.map { post ->
-                    post.copy(ownedByMe = post.authorId == token?.id)
-                },
+                        post.copy(ownedByMe = post.authorId == token?.id)
+                    },
                     empty = posts.isEmpty(),
                 )
             }
@@ -61,9 +64,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     val errorMessage: LiveData<String?>
         get() = _errorMessage
 
-    private val prefs = application.getSharedPreferences("draft_prefs", Context.MODE_PRIVATE)
-    private val draftKey = "post_draft"
-
     private val _photo = MutableLiveData<PhotoModel?>(null)
     val photo: LiveData<PhotoModel?>
         get() = _photo
@@ -78,7 +78,6 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         load()
         observeNewPosts()
     }
-
 
     fun load() {
         viewModelScope.launch {
@@ -277,7 +276,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun checkAuthBeforeAction(action: () -> Unit) {
-        if (AppAuth.getInstance().authState.value == null) {
+        if (appAuth.authState.value == null) {
             _shouldAuthenticate.call()
         } else {
             action()

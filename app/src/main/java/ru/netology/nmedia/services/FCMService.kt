@@ -6,33 +6,43 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import android.os.Parcel
-import android.os.Parcelable
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import org.json.JSONObject
 import ru.netology.nmedia.R
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.dto.PushToken
-import java.util.jar.Manifest
+import javax.inject.Inject
 import kotlin.random.Random
 
-
+@AndroidEntryPoint
 class FCMService() : FirebaseMessagingService() {
+
+    @Inject
+    lateinit var firebaseMessaging: FirebaseMessaging
 
     private val action = "action"
     private val content = "content"
     private val gson = Gson()
     private val channelId = "remote"
+
+    @Inject
+    lateinit var appAuth: AppAuth
 
     override fun onCreate() {
         super.onCreate()
@@ -58,7 +68,7 @@ class FCMService() : FirebaseMessagingService() {
         } else {
             null
         }
-        val currentUserId = AppAuth.getInstance().authState.value?.id ?: 0L
+        val currentUserId = appAuth.authState.value?.id ?: 0L
 
         when {
             recipientId == null || recipientId == currentUserId -> {
@@ -99,11 +109,21 @@ class FCMService() : FirebaseMessagingService() {
         }
     }
 
+    @InstallIn(SingletonComponent::class)
+    @EntryPoint
+    interface FCMEntryPoint {
+        fun getApiService(): PostApiService
+    }
+
     private fun resendPushToken() {
         CoroutineScope(Dispatchers.IO).launch {
             runCatching {
-                val token = com.google.firebase.messaging.FirebaseMessaging.getInstance().token.await()
-                PostApi.service.sendPushToken(PushToken(token))
+                val entryPoint = EntryPointAccessors.fromApplication(
+                    applicationContext,
+                    FCMEntryPoint::class.java
+                )
+                val token = firebaseMessaging.token.await()
+                entryPoint.getApiService().sendPushToken(PushToken(token))
                 Log.d("FCMService", "Push token resent")
             }.onFailure {
                 Log.e("FCMService", "Failed to resend push token", it)
@@ -179,7 +199,7 @@ class FCMService() : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        AppAuth.getInstance().sendPushToken(token)
+        appAuth.sendPushToken(token)
     }
 
     enum class Action {

@@ -92,6 +92,7 @@
         implementation libs.androidx.hilt.work
         implementation libs.kotlinx.coroutines.android
         implementation libs.androidx.work.runtime.ktx
+        implementation libs.androidx.paging.runtime
 
 
         testImplementation libs.junit

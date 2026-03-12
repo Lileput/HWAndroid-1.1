@@ -24,6 +24,7 @@ navigationFragmentKtx = "2.9.3"
 navigationFragmentKtxVersion = "2.8.6"
 navigationUiKtx = "2.8.6"
 okhttp = "5.3.2"
+pagingRuntime = "3.4.0"
 playServicesBase = "18.5.0"
 retrofit = "3.0.0"
 room = "2.8.4"
@@ -43,6 +44,7 @@ androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fr
 androidx-navigation-fragment-ktx-v286 = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigationFragmentKtxVersion" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationFragmentKtx" }
 androidx-navigation-ui-ktx-v286 = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigationUiKtx" }
+androidx-paging-runtime = { module = "androidx.paging:paging-runtime", version.ref = "pagingRuntime" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
 androidx-swiperefreshlayout = { module = "androidx.swiperefreshlayout:swiperefreshlayout", version.ref = "swiperefreshlayout" }

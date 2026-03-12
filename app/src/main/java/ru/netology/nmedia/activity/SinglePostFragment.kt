@@ -25,10 +25,7 @@ import ru.netology.nmedia.viewModel.PostViewModel
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SinglePostFragment: Fragment() {
-
-    @Inject
-    lateinit var appAuth: AppAuth
+class SinglePostFragment : Fragment() {
 
     private val viewModel: PostViewModel by hiltNavGraphViewModels(R.id.nav_main)
 
@@ -54,10 +51,12 @@ class SinglePostFragment: Fragment() {
                             viewModel.like(post.id)
                         }
                     }
+
                     override fun remove(post: Post) {
                         viewModel.removeById(post.id)
                         findNavController().navigateUp()
                     }
+
                     override fun repost(post: Post) = viewModel.reposts(post.id)
 
                     override fun edit(post: Post) {
@@ -74,7 +73,11 @@ class SinglePostFragment: Fragment() {
                         try {
                             startActivity(Intent(Intent.ACTION_VIEW, videoUrl.toUri()))
                         } catch (e: ActivityNotFoundException) {
-                            Toast.makeText(requireContext(), R.string.no_video_app, Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                requireContext(),
+                                R.string.no_video_app,
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
 

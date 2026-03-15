@@ -167,6 +167,13 @@ class FeetFragment : Fragment() {
             }
         }
 
+        binding.newPostsBanner.setOnClickListener {
+            binding.newPostsBanner.visibility = View.GONE
+            viewModel.showNewPosts()
+            adapter.refresh()
+            binding.list.smoothScrollToPosition(0)
+        }
+
         viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
             errorMessage?.let {
                 Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)

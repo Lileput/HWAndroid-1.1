@@ -1,5 +1,6 @@
 package ru.netology.nmedia.activity
 
+import dagger.hilt.android.AndroidEntryPoint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -50,7 +51,7 @@ class SignInFragment : Fragment() {
 
         viewModel.success.observe(viewLifecycleOwner) { success ->
             if (success) {
-                findNavController().navigate(R.id.feetFragment)
+                findNavController().navigateUp()
             }
         }
 

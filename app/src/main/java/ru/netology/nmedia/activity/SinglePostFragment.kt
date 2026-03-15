@@ -25,10 +25,7 @@ import ru.netology.nmedia.viewModel.PostViewModel
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SinglePostFragment: Fragment() {
-
-    @Inject
-    lateinit var appAuth: AppAuth
+class SinglePostFragment : Fragment() {
 
     private val viewModel: PostViewModel by hiltNavGraphViewModels(R.id.nav_main)
 
@@ -39,72 +36,78 @@ class SinglePostFragment: Fragment() {
     ): View {
         val binding = FragmentSinglePostBinding.inflate(inflater, container, false)
 
-        val postId = arguments?.postId ?: 0L
-
-        viewModel.data.observe(viewLifecycleOwner) { posts ->
-            val post = posts.posts.find { it.id == postId }
-            post?.let {
-
-                val viewHolder = PostViewHolder(binding.postSingle, object : OnInteractionListener {
-
-                    override fun like(post: Post) {
-                        if (post.likedByMe) {
-                            viewModel.unlike(post.id)
-                        } else {
-                            viewModel.like(post.id)
-                        }
-                    }
-                    override fun remove(post: Post) {
-                        viewModel.removeById(post.id)
-                        findNavController().navigateUp()
-                    }
-                    override fun repost(post: Post) = viewModel.reposts(post.id)
-
-                    override fun edit(post: Post) {
-                        findNavController().navigate(
-                            R.id.action_singlePostFragment_to_newPostFragment,
-                            Bundle().apply {
-                                putString(NewPostFragment.EXTRA_EDIT_POST, post.content)
-                                putLong(NewPostFragment.EXTRA_EDIT_POST_ID, post.id)
-                            }
-                        )
-                    }
-
-                    override fun onPlayVideo(videoUrl: String) {
-                        try {
-                            startActivity(Intent(Intent.ACTION_VIEW, videoUrl.toUri()))
-                        } catch (e: ActivityNotFoundException) {
-                            Toast.makeText(requireContext(), R.string.no_video_app, Toast.LENGTH_SHORT).show()
-                        }
-                    }
-
-                    override fun showDeleteConfirmation(post: Post) {
-                        AlertDialog.Builder(requireContext())
-                            .setMessage(R.string.delete_post_confirmation)
-                            .setPositiveButton(R.string.yes) { _, _ -> remove(post) }
-                            .setNegativeButton(R.string.no, null)
-                            .show()
-                    }
-
-                    override fun onItemClick(post: Post) {
-                    }
-
-                    override fun onImageClick(imageUrl: String) {
-                        findNavController().navigate(
-                            R.id.action_feetFragment_to_photoViewFragment,
-                            PhotoViewFragment.createArguments(imageUrl)
-                        )
-                    }
-                })
-
-                viewHolder.bind(it)
-
-                binding.postSingle.root.setOnClickListener(null)
-
-            } ?: run {
-                findNavController().navigateUp()
-            }
-        }
+//        val postId = arguments?.postId ?: 0L
+//
+//        viewModel.data.observe(viewLifecycleOwner) { posts ->
+//            val post = posts.posts.find { it.id == postId }
+//            post?.let {
+//
+//                val viewHolder = PostViewHolder(binding.postSingle, object : OnInteractionListener {
+//
+//                    override fun like(post: Post) {
+//                        if (post.likedByMe) {
+//                            viewModel.unlike(post.id)
+//                        } else {
+//                            viewModel.like(post.id)
+//                        }
+//                    }
+//
+//                    override fun remove(post: Post) {
+//                        viewModel.removeById(post.id)
+//                        findNavController().navigateUp()
+//                    }
+//
+//                    override fun repost(post: Post) = viewModel.reposts(post.id)
+//
+//                    override fun edit(post: Post) {
+//                        findNavController().navigate(
+//                            R.id.action_singlePostFragment_to_newPostFragment,
+//                            Bundle().apply {
+//                                putString(NewPostFragment.EXTRA_EDIT_POST, post.content)
+//                                putLong(NewPostFragment.EXTRA_EDIT_POST_ID, post.id)
+//                            }
+//                        )
+//                    }
+//
+//                    override fun onPlayVideo(videoUrl: String) {
+//                        try {
+//                            startActivity(Intent(Intent.ACTION_VIEW, videoUrl.toUri()))
+//                        } catch (e: ActivityNotFoundException) {
+//                            Toast.makeText(
+//                                requireContext(),
+//                                R.string.no_video_app,
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                    }
+//
+//                    override fun showDeleteConfirmation(post: Post) {
+//                        AlertDialog.Builder(requireContext())
+//                            .setMessage(R.string.delete_post_confirmation)
+//                            .setPositiveButton(R.string.yes) { _, _ -> remove(post) }
+//                            .setNegativeButton(R.string.no, null)
+//                            .show()
+//                    }
+//
+//                    override fun onItemClick(post: Post) {
+//                    }
+//
+//                    override fun onImageClick(imageUrl: String) {
+//                        findNavController().navigate(
+//                            R.id.action_feetFragment_to_photoViewFragment,
+//                            PhotoViewFragment.createArguments(imageUrl)
+//                        )
+//                    }
+//                })
+//
+//                viewHolder.bind(it)
+//
+//                binding.postSingle.root.setOnClickListener(null)
+//
+//            } ?: run {
+//                findNavController().navigateUp()
+//            }
+//        }
 
         return binding.root
     }

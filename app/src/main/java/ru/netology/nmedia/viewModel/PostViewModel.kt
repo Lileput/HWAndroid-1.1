@@ -7,11 +7,15 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import retrofit2.HttpException
@@ -35,18 +39,15 @@ class PostViewModel @Inject constructor(
 
     private val draftKey = "post_draft"
 
-    val data: LiveData<FeedModel> = appAuth.authState.flatMapLatest { token ->
-        repository.data
-            .map { posts ->
-                FeedModel(
-                    posts.map { post ->
-                        post.copy(ownedByMe = post.authorId == token?.id)
-                    },
-                    empty = posts.isEmpty(),
-                )
+    val data: Flow<PagingData<Post>> = appAuth.authState.flatMapLatest { token ->
+        repository.getPagingData()
+            .map { pagingData ->
+                pagingData.map { post ->
+                    post.copy(ownedByMe = post.authorId == token?.id)
+                }
             }
     }
-        .asLiveData(Dispatchers.Default)
+        .flowOn(Dispatchers.Default)
 
     val newerCount = repository.getNewer(0)
         .catch { _state.postValue(FeedModelState(error = true)) }
@@ -254,6 +255,7 @@ class PostViewModel @Inject constructor(
                     else -> "$defaultMessage (код ${e.code()})"
                 }
             }
+
             is IOException -> "Проблема с интернет-соединением"
             else -> {
                 val message = e.message

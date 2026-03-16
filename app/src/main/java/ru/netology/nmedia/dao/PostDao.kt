@@ -1,5 +1,6 @@
 package ru.netology.nmedia.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
@@ -12,6 +13,9 @@ interface PostDao {
 
     @Query("SELECT * FROM PostEntity WHERE hidden = 0 ORDER BY id DESC")
     fun getAll(): Flow<List<PostEntity>>
+
+    @Query("SELECT * FROM PostEntity WHERE hidden = 0 ORDER BY id DESC")
+    fun getPagingSource(): PagingSource<Int, PostEntity>
 
     @Query("SELECT * FROM PostEntity ORDER BY id DESC")
     fun getAllIncludingHidden(): Flow<List<PostEntity>>
@@ -36,6 +40,9 @@ interface PostDao {
 
     @Query("SELECT MAX(id) FROM PostEntity")
     suspend fun getMaxId(): Long?
+
+    @Query("SELECT MIN(id) FROM PostEntity")
+    suspend fun getMinId(): Long?
 
     suspend fun clearAndInsert(posts: List<PostEntity>) {
         clear()
@@ -91,4 +98,5 @@ interface PostDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM PostEntity WHERE id = :id)")
     suspend fun postExists(id: Long): Boolean
+
 }

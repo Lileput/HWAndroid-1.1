@@ -1,24 +1,25 @@
 package ru.netology.nmedia.repository
 
+import androidx.paging.ExperimentalPagingApi
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
-import kotlinx.coroutines.Dispatchers
+import androidx.paging.map
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.map
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.dao.PostDao
+import ru.netology.nmedia.dao.PostRemoteKeyDao
+import ru.netology.nmedia.db.AppDb
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.entity.PostEntity
-import ru.netology.nmedia.error.AppError
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -27,30 +28,21 @@ import javax.inject.Singleton
 class PostRepositoryImpl @Inject constructor(
     private val postDao: PostDao,
     private val apiService: PostApiService,
+    private val postRemoteKeyDao: PostRemoteKeyDao,
+    private val appDb: AppDb,
 ) : PostRepository {
+    @OptIn(ExperimentalPagingApi::class)
     override fun getPagingData(): Flow<PagingData<Post>> = Pager(
         config = PagingConfig(pageSize = 10, enablePlaceholders = false),
-        pagingSourceFactory = {
-            PostPagingSource(apiService)
-        }
+        pagingSourceFactory = { postDao.getPagingSource() },
+        remoteMediator = PostRemoteMediator(
+            apiService = apiService,
+            postDao = postDao,
+            postRemoteKeyDao = postRemoteKeyDao,
+            appDb = appDb,
+            )
     ).flow
-
-    override suspend fun getAll() {
-        try {
-            val response = apiService.getAll()
-
-            if (!response.isSuccessful) {
-                throw RuntimeException(response.message())
-            }
-
-            val posts = response.body() ?: throw RuntimeException("Response body is empty")
-
-            val entities = posts.map(PostEntity.Companion::fromDto)
-            postDao.clearAndInsert(entities)
-        } catch (e: Exception) {
-            throw e
-        }
-    }
+        .map { it.map (PostEntity::toDto) }
 
     override suspend fun likeById(id: Long): Post {
         try {
@@ -174,45 +166,6 @@ class PostRepositoryImpl @Inject constructor(
             throw RuntimeException("Failed to edit post: ${e.message}")
         }
     }
-
-    override fun getNewer(id: Long): Flow<Int> = flow {
-        while (true) {
-            delay(10_000L)
-
-            val maxId = withContext(Dispatchers.IO) {
-                postDao.getMaxId()
-            } ?: 0L
-
-            val response = apiService.getNewer(maxId)
-
-            if (!response.isSuccessful) {
-                throw RuntimeException(response.message())
-            }
-
-            val body = response.body() ?: throw RuntimeException("Response body is empty")
-
-            val newPosts = mutableListOf<Post>()
-            for (post in body) {
-                if (!postDao.postExists(post.id)) {
-                    newPosts.add(post)
-                }
-            }
-
-            if (newPosts.isNotEmpty()) {
-                val entities = newPosts.map { post ->
-                    PostEntity.fromDto(post).copy(
-                        isNew = true,
-                        hidden = true
-                    )
-                }
-
-                postDao.insert(entities)
-                emit(postDao.getNewHiddenPostsCount())
-            } else {
-                emit(0)
-            }
-        }
-    }.catch { e -> throw AppError.from(e) }
 
     override suspend fun showNewPosts() {
 

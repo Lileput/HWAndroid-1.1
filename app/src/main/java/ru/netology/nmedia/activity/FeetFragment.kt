@@ -12,11 +12,15 @@ import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.SinglePostFragment.Companion.postId
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -124,26 +128,37 @@ class FeetFragment : Fragment() {
                 }
             }
         }
+        lifecycleScope.launch {
+            viewModel.data.collectLatest { pagingData ->
+                adapter.submitData(pagingData)
+            }
+        }
 
-        viewModel.data.observe(viewLifecycleOwner) { feedModel ->
-            adapter.submitList(feedModel.posts)
-            binding.empty.isVisible = feedModel.empty
-            binding.list.isVisible = !feedModel.empty
+        lifecycleScope.launch {
+            adapter.loadStateFlow.collectLatest { loadStates ->
+                val isEmpty = adapter.itemCount == 0
+
+                binding.progress.isVisible = loadStates.refresh is LoadState.Loading
+                binding.swipeRefreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
+
+                val hasError = loadStates.refresh is LoadState.Error
+                binding.errorGroup.isVisible = hasError && isEmpty
+                binding.retry.isVisible = hasError && isEmpty
+                binding.errorTitle.isVisible = hasError && isEmpty
+
+                binding.empty.isVisible = isEmpty && !hasError && !(loadStates.refresh is LoadState.Loading)
+                binding.list.isVisible = !isEmpty
+
+                if (loadStates.append is LoadState.Error) {
+                    val error = (loadStates.append as LoadState.Error).error
+                    Snackbar.make(binding.root,
+                        "Ошибка при загрузке: ${error.message}",
+                        Snackbar.LENGTH_LONG).show()
+                }
+            }
         }
 
         viewModel.state.observe(viewLifecycleOwner) { state ->
-            binding.swipeRefreshLayout.isRefreshing = state.refreshing
-            binding.progress.isVisible = state.loading
-
-            val currentFeedModel = viewModel.data.value
-
-            val showError = state.error && (currentFeedModel?.empty == true)
-            binding.errorGroup.isVisible = showError
-            binding.retry.isVisible = showError
-            binding.errorTitle.isVisible = showError
-
-            binding.ok.isVisible = !state.error || (currentFeedModel?.empty == false)
-
             if (state.newPostsCount > 0) {
                 binding.newPostsBanner.visibility = View.VISIBLE
                 binding.newPostsCount.text = state.newPostsCount.toString()
@@ -155,16 +170,15 @@ class FeetFragment : Fragment() {
         binding.newPostsBanner.setOnClickListener {
             binding.newPostsBanner.visibility = View.GONE
             viewModel.showNewPosts()
-
-            scrollObserver?.let { adapter.registerAdapterDataObserver(it) }
+            adapter.refresh()
+            binding.list.smoothScrollToPosition(0)
         }
-
 
         viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
             errorMessage?.let {
                 Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
                     .setAction("Повторить") {
-                        viewModel.load()
+                        adapter.retry()
                     }
                     .setAnchorView(binding.ok)
                     .show()
@@ -199,11 +213,11 @@ class FeetFragment : Fragment() {
         }
 
         binding.swipeRefreshLayout.setOnRefreshListener {
-            viewModel.refresh()
+            adapter.refresh()
         }
 
         binding.retry.setOnClickListener {
-            viewModel.load()
+            adapter.retry()
         }
 
         binding.ok.setOnClickListener {

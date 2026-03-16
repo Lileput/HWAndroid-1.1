@@ -1,5 +1,6 @@
 package ru.netology.nmedia.activity
 
+import dagger.hilt.android.AndroidEntryPoint
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,6 +15,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentSignUpBinding
 import ru.netology.nmedia.viewModel.SignUpViewModel
 
+@AndroidEntryPoint
 class SignUpFragment : Fragment() {
 
     private val viewModel: SignUpViewModel by viewModels()

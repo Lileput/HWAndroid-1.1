@@ -1,5 +1,6 @@
 package ru.netology.nmedia.activity
 
+import dagger.hilt.android.AndroidEntryPoint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.FragmentSignInBinding
 import ru.netology.nmedia.viewModel.SignInViewModel
 
+@AndroidEntryPoint
 class SignInFragment : Fragment() {
 
     private val viewModel: SignInViewModel by viewModels()
@@ -49,7 +51,7 @@ class SignInFragment : Fragment() {
 
         viewModel.success.observe(viewLifecycleOwner) { success ->
             if (success) {
-                findNavController().navigate(R.id.feetFragment)
+                findNavController().navigateUp()
             }
         }
 

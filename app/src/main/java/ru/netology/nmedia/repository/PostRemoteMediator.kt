@@ -33,13 +33,17 @@ class PostRemoteMediator(
 
             val result = when (loadType) {
                 LoadType.APPEND -> {
-                    val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(false)
-                    apiService.getBefore(id, state.config.pageSize)
+                    val beforeKey = postRemoteKeyDao.getBefore() ?: return MediatorResult.Success(false)
+                    apiService.getBefore(beforeKey, state.config.pageSize)
                 }
 
                 LoadType.REFRESH -> {
-                    val maxId = postDao.getMaxId() ?: 0L
-                    apiService.getAfter(maxId, state.config.pageSize)
+                    val afterKey = postRemoteKeyDao.getAfter()
+                    if (afterKey == null) {
+                        apiService.getLatest(state.config.pageSize)
+                    } else {
+                        apiService.getAfter(afterKey, state.config.pageSize)
+                    }
                 }
 
                 else -> {
@@ -57,15 +61,21 @@ class PostRemoteMediator(
                 when (loadType) {
                     LoadType.REFRESH -> {
                         if (data.isNotEmpty()) {
-                            postDao.insert(data.map { PostEntity.fromDto(it) })
-
-                            val newMaxId = postDao.getMaxId() ?: return@withTransaction
+                            val newMaxId = data.maxOfOrNull { it.id } ?: return@withTransaction
+                            val newMinId = data.minOfOrNull { it.id } ?: return@withTransaction
                             postRemoteKeyDao.insert(
                                 PostRemoteKeyEntity(
                                     PostRemoteKeyEntity.KeyType.AFTER,
                                     newMaxId
                                 )
                             )
+                            postRemoteKeyDao.insert(
+                                PostRemoteKeyEntity(
+                                    PostRemoteKeyEntity.KeyType.BEFORE,
+                                    newMinId
+                                )
+                            )
+                            postDao.insert(data.map { PostEntity.fromDto(it) })
                         }
                     }
 
@@ -73,15 +83,14 @@ class PostRemoteMediator(
 
                     LoadType.APPEND -> {
                         if (data.isNotEmpty()) {
-                            postDao.insert(data.map { PostEntity.fromDto(it) })
-
-                            val newMinId = postDao.getMinId() ?: return@withTransaction
+                            val newMinId = data.minOfOrNull { it.id } ?: return@withTransaction
                             postRemoteKeyDao.insert(
                                 PostRemoteKeyEntity(
                                     PostRemoteKeyEntity.KeyType.BEFORE,
                                     newMinId
                                 )
                             )
+                            postDao.insert(data.map { PostEntity.fromDto(it) })
                         }
                     }
                 }

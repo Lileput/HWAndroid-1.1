@@ -15,6 +15,12 @@ interface PostRemoteKeyDao {
     @Query("SELECT min(`key`) FROM PostRemoteKeyEntity")
     suspend fun min(): Long?
 
+    @Query("SELECT `key` FROM PostRemoteKeyEntity WHERE type = 'AFTER'")
+    suspend fun getAfter(): Long?
+
+    @Query("SELECT `key` FROM PostRemoteKeyEntity WHERE type = 'BEFORE'")
+    suspend fun getBefore(): Long?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(postRemoteKeyEntity: PostRemoteKeyEntity)
 
@@ -23,4 +29,5 @@ interface PostRemoteKeyDao {
 
     @Query("DELETE FROM PostRemoteKeyEntity")
     suspend fun clear()
+
 }

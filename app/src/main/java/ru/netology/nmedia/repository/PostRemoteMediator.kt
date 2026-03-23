@@ -61,20 +61,33 @@ class PostRemoteMediator(
                 when (loadType) {
                     LoadType.REFRESH -> {
                         if (data.isNotEmpty()) {
-                            val newMaxId = data.maxOfOrNull { it.id } ?: return@withTransaction
-                            val newMinId = data.minOfOrNull { it.id } ?: return@withTransaction
-                            postRemoteKeyDao.insert(
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.AFTER,
-                                    newMaxId
+                            val afterKey = postRemoteKeyDao.getAfter()
+                            val isFirstLoad = afterKey == null
+
+                            if (isFirstLoad) {
+                                val newMaxId = data.maxOfOrNull { it.id } ?: return@withTransaction
+                                val newMinId = data.minOfOrNull { it.id } ?: return@withTransaction
+                                postRemoteKeyDao.insert(
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.AFTER,
+                                        newMaxId
+                                    )
                                 )
-                            )
-                            postRemoteKeyDao.insert(
-                                PostRemoteKeyEntity(
-                                    PostRemoteKeyEntity.KeyType.BEFORE,
-                                    newMinId
+                                postRemoteKeyDao.insert(
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.BEFORE,
+                                        newMinId
+                                    )
                                 )
-                            )
+                            } else {
+                                val newMaxId = data.maxOfOrNull { it.id } ?: return@withTransaction
+                                postRemoteKeyDao.insert(
+                                    PostRemoteKeyEntity(
+                                        PostRemoteKeyEntity.KeyType.AFTER,
+                                        newMaxId
+                                    )
+                                )
+                            }
                             postDao.insert(data.map { PostEntity.fromDto(it) })
                         }
                     }

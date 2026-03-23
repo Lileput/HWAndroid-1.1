@@ -93,6 +93,7 @@
         implementation libs.kotlinx.coroutines.android
         implementation libs.androidx.work.runtime.ktx
         implementation libs.androidx.paging.runtime
+        implementation libs.androidx.room.paging
 
 
         testImplementation libs.junit

@@ -185,10 +185,6 @@ class FeetFragment : Fragment() {
             }
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) {
-            println(it)
-        }
-
         viewModel.shouldAuthenticate.observe(viewLifecycleOwner) {
             AlertDialog.Builder(requireContext())
                 .setTitle(R.string.auth_required)

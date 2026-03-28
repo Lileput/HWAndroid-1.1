@@ -7,8 +7,6 @@ import java.io.File
 
 interface PostRepository {
         fun getPagingData(): Flow<PagingData<Post>>
-        fun getNewer(id: Long): Flow<Int>
-        suspend fun getAll()
         suspend fun likeById(id: Long) : Post
         suspend fun unlikeById(id: Long) : Post
         suspend fun removeById(id: Long)

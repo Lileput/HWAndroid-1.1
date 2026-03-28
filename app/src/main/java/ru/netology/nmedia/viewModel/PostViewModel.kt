@@ -49,10 +49,6 @@ class PostViewModel @Inject constructor(
     }
         .flowOn(Dispatchers.Default)
 
-    val newerCount = repository.getNewer(0)
-        .catch { _state.postValue(FeedModelState(error = true)) }
-        .asLiveData(Dispatchers.Default)
-
     private val _state = MutableLiveData(FeedModelState())
     val state: LiveData<FeedModelState>
         get() = _state
@@ -76,21 +72,7 @@ class PostViewModel @Inject constructor(
     val shouldConfirmLogout: LiveData<Unit> get() = _shouldConfirmLogout
 
     init {
-        load()
         observeNewPosts()
-    }
-
-    fun load() {
-        viewModelScope.launch {
-            try {
-                _state.value = FeedModelState(loading = true)
-                repository.getAll()
-                _state.value = FeedModelState()
-            } catch (e: Exception) {
-                _state.value = FeedModelState(error = true)
-                handleError(e, "Не удалось загрузить данные")
-            }
-        }
     }
 
     private fun observeNewPosts() {
@@ -110,19 +92,6 @@ class PostViewModel @Inject constructor(
     fun showNewPosts() {
         viewModelScope.launch {
             repository.showNewPosts()
-        }
-    }
-
-    fun refresh() {
-        viewModelScope.launch {
-            try {
-                _state.value = FeedModelState(refreshing = true)
-                repository.getAll()
-                _state.value = FeedModelState()
-            } catch (e: Exception) {
-                _state.value = FeedModelState(error = true)
-                handleError(e, "Не удалось обновить данные")
-            }
         }
     }
 

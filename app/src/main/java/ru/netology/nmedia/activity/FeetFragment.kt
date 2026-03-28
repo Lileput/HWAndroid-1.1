@@ -25,6 +25,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.SinglePostFragment.Companion.postId
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostAdapter
+import ru.netology.nmedia.adapter.PostLoadStateAdapter
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
@@ -118,7 +119,12 @@ class FeetFragment : Fragment() {
             }
         })
 
-        binding.list.adapter = adapter
+
+
+        binding.list.adapter = adapter.withLoadStateHeaderAndFooter(
+            header = PostLoadStateAdapter { adapter.retry() },
+            footer = PostLoadStateAdapter { adapter.retry() }
+        )
 
         scrollObserver = object : RecyclerView.AdapterDataObserver() {
             override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
@@ -136,18 +142,18 @@ class FeetFragment : Fragment() {
 
         lifecycleScope.launch {
             adapter.loadStateFlow.collectLatest { loadStates ->
-                val isEmpty = adapter.itemCount == 0
-
-                binding.progress.isVisible = loadStates.refresh is LoadState.Loading
                 binding.swipeRefreshLayout.isRefreshing = loadStates.refresh is LoadState.Loading
 
+                val isEmpty = adapter.itemCount == 0
                 val hasError = loadStates.refresh is LoadState.Error
+
+                binding.empty.isVisible = isEmpty && !hasError && loadStates.refresh !is LoadState.Loading
+                binding.list.isVisible = !isEmpty
+                binding.progress.isVisible = loadStates.refresh is LoadState.Loading && isEmpty
+
                 binding.errorGroup.isVisible = hasError && isEmpty
                 binding.retry.isVisible = hasError && isEmpty
                 binding.errorTitle.isVisible = hasError && isEmpty
-
-                binding.empty.isVisible = isEmpty && !hasError && !(loadStates.refresh is LoadState.Loading)
-                binding.list.isVisible = !isEmpty
 
                 if (loadStates.append is LoadState.Error) {
                     val error = (loadStates.append as LoadState.Error).error

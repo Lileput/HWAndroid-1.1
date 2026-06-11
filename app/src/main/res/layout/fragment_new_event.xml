@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="@dimen/new_post_toolbar_height"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/content"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:gravity="top"
+                android:hint="@string/post_text"
+                android:importantForAutofill="no"
+                android:inputType="textMultiLine"
+                android:minHeight="120dp"
+                android:padding="@dimen/common_margin" />
+
+            <FrameLayout
+                android:id="@+id/previewContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/preview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/photo_view" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/removePhoto"
+                    style="@style/Widget.Material3.Button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal|bottom"
+                    android:layout_marginBottom="16dp"
+                    android:text="@string/menu_remove" />
+            </FrameLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/mediaPreviewContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/common_margin"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="1dp"
+                tools:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/mediaPreviewLabel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        tools:text="Video: clip.mp4" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/removeMedia"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/menu_remove" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <TextView
+                android:id="@+id/eventDetailsHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/common_margin"
+                android:layout_marginBottom="8dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:visibility="gone"
+                tools:text="Online · 16.05.22 12:00"
+                tools:visibility="visible" />
+
+            <TextView
+                android:id="@+id/locationHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="@dimen/common_margin"
+                android:layout_marginBottom="8dp"
+                android:textColor="?android:attr/textColorSecondary"
+                android:visibility="gone"
+                tools:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottomAppBar"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/new_post_toolbar_height"
+        android:layout_gravity="bottom"
+        android:background="?attr/colorSurface"
+        android:baselineAligned="false"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/takePhoto"
+            style="@style/Widget.NMedia.NewPostToolbarIconButton"
+            android:layout_width="@dimen/new_post_toolbar_icon_button_size"
+            android:layout_height="@dimen/new_post_toolbar_icon_button_size"
+            android:layout_marginEnd="@dimen/new_post_toolbar_icon_spacing"
+            android:contentDescription="@string/pick_photo_camera"
+            app:icon="@drawable/ic_post_camera_24" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pickAttachment"
+            style="@style/Widget.NMedia.NewPostToolbarIconButton"
+            android:layout_width="@dimen/new_post_toolbar_icon_button_size"
+            android:layout_height="@dimen/new_post_toolbar_icon_button_size"
+            android:layout_marginEnd="@dimen/new_post_toolbar_icon_spacing"
+            android:contentDescription="@string/pick_attachment_title"
+            app:icon="@drawable/ic_post_attachment_24" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pickSpeakers"
+            style="@style/Widget.NMedia.NewPostToolbarIconButton"
+            android:layout_width="@dimen/new_post_toolbar_icon_button_size"
+            android:layout_height="@dimen/new_post_toolbar_icon_button_size"
+            android:layout_marginEnd="@dimen/new_post_toolbar_icon_spacing"
+            android:contentDescription="@string/speakers"
+            app:icon="@drawable/ic_post_users_24" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/pickLocation"
+            style="@style/Widget.NMedia.NewPostToolbarIconButton"
+            android:layout_width="@dimen/new_post_toolbar_icon_button_size"
+            android:layout_height="@dimen/new_post_toolbar_icon_button_size"
+            android:contentDescription="@string/pick_location"
+            app:icon="@drawable/ic_post_location_24" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <FrameLayout
+            android:id="@+id/pickEventDetails"
+            android:layout_width="@dimen/new_post_toolbar_add_size"
+            android:layout_height="@dimen/new_post_toolbar_add_size"
+            android:background="@drawable/bg_new_post_add_circle_ripple"
+            android:clickable="true"
+            android:contentDescription="@string/event_date"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="@dimen/new_post_toolbar_add_icon_size"
+                android:layout_height="@dimen/new_post_toolbar_add_icon_size"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_add"
+                app:tint="?attr/colorPrimary" />
+        </FrameLayout>
+    </LinearLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

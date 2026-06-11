@@ -72,7 +72,7 @@ class FCMService() : FirebaseMessagingService() {
 
         when {
             recipientId == null || recipientId == currentUserId -> {
-                showSimpleNotification(json.optString("content", "Новое уведомление"))
+                showSimpleNotification(json.optString("content", getString(R.string.new_notification)))
             }
             else -> {
                 resendPushToken()
@@ -83,7 +83,7 @@ class FCMService() : FirebaseMessagingService() {
     private fun showSimpleNotification(content: String) {
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(R.drawable.ic_notification)
-            .setContentTitle("Новое уведомление")
+            .setContentTitle(getString(R.string.new_notification))
             .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)

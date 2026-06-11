@@ -1,20 +1,30 @@
 package ru.netology.nmedia.viewModel
 
+import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import retrofit2.HttpException
+import ru.netology.nmedia.R
 import ru.netology.nmedia.api.PostApiService
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.Token
+import java.io.File
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
 class SignUpViewModel @Inject constructor(
     private val apiService: PostApiService,
-    private val appAuth: AppAuth
+    private val appAuth: AppAuth,
+    @ApplicationContext private val appContext: Context,
 ) : ViewModel() {
 
     private val _isLoading = MutableLiveData(false)
@@ -23,28 +33,52 @@ class SignUpViewModel @Inject constructor(
     private val _error = MutableLiveData<String?>(null)
     val error: LiveData<String?> = _error
 
+    private val _toastMessage = MutableLiveData<String?>(null)
+    val toastMessage: LiveData<String?> = _toastMessage
+
     private val _success = MutableLiveData(false)
     val success: LiveData<Boolean> = _success
 
-    fun registration(login: String, pass: String, name: String) {
+    fun onToastShown() {
+        _toastMessage.value = null
+    }
+
+    fun registration(login: String, pass: String, name: String, avatarFile: File) {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
                 _error.value = null
+                _toastMessage.value = null
 
-                val response = apiService.registration(login, pass, name)
+                val avatarPart = MultipartBody.Part.createFormData(
+                    "file",
+                    avatarFile.name,
+                    avatarFile.asRequestBody("image/*".toMediaTypeOrNull()),
+                )
+
+                val response = apiService.registration(
+                    login = login,
+                    pass = pass,
+                    name = name,
+                    file = avatarPart,
+                )
 
                 if (!response.isSuccessful) {
-                    _error.value = when (response.code()) {
-                        400 -> "Пользователь с таким логином уже существует"
-                        else -> "Ошибка ${response.code()}: ${response.message()}"
+                    when (response.code()) {
+                        400, 403 -> _toastMessage.value =
+                            appContext.getString(R.string.user_already_registered)
+                        415 -> _toastMessage.value =
+                            appContext.getString(R.string.error_avatar_invalid)
+                        else -> _error.value = appContext.getString(
+                            R.string.error_with_code_message,
+                            response.code(),
+                            response.message().orEmpty(),
+                        )
                     }
                     return@launch
                 }
 
                 val regToken = response.body()
-
-                delay(10000)
 
                 var loginSuccess = false
                 var loginError: String? = null
@@ -62,38 +96,44 @@ class SignUpViewModel @Inject constructor(
                             }
                         } else {
                             loginError = when (loginResponse.code()) {
-                                401 -> "Неверный логин или пароль"
-                                403 -> "Доступ запрещён"
-                                else -> "Ошибка ${loginResponse.code()}"
+                                401 -> appContext.getString(R.string.wrong_login_or_password)
+                                403 -> appContext.getString(R.string.error_forbidden)
+                                else -> appContext.getString(R.string.error_with_code, loginResponse.code())
                             }
                         }
                     } catch (e: Exception) {
-                        loginError = "Ошибка сети: ${e.message}"
-                    }
-
-                    if (!loginSuccess && attempt < 3) {
-                        delay(3000)
+                        loginError = appContext.getString(R.string.network_error)
                     }
                 }
 
                 if (loginSuccess) {
+                    mergeAvatarFromRegistration(regToken)
+                    _success.value = true
+                } else if (regToken != null) {
+                    appAuth.setAuth(regToken)
                     _success.value = true
                 } else {
-                    if (regToken != null) {
-                        appAuth.setAuth(regToken)
-                        _error.value =
-                            "Регистрация успешна, но автоматический вход не удался. Попробуйте войти вручную."
-                        _success.value = true
-                    } else {
-                        _error.value = loginError ?: "Неизвестная ошибка при входе"
-                    }
+                    _error.value = loginError ?: appContext.getString(R.string.error_sign_in_after_registration)
                 }
-
+            } catch (e: IOException) {
+                _error.value = appContext.getString(R.string.network_error)
+            } catch (e: HttpException) {
+                when (e.code()) {
+                    400, 403 -> _toastMessage.value = appContext.getString(R.string.user_already_registered)
+                    415 -> _toastMessage.value = appContext.getString(R.string.error_avatar_invalid)
+                    else -> _error.value = appContext.getString(R.string.error_server_with_message, e.message.orEmpty())
+                }
             } catch (e: Exception) {
-                _error.value = "Ошибка: ${e.message}"
+                _error.value = appContext.getString(R.string.error_server_with_message, e.message.orEmpty())
             } finally {
                 _isLoading.value = false
             }
         }
+    }
+
+    private fun mergeAvatarFromRegistration(regToken: Token?) {
+        val current = appAuth.authState.value ?: return
+        if (!current.avatar.isNullOrBlank() || regToken?.avatar.isNullOrBlank()) return
+        appAuth.setAuth(current.copy(avatar = regToken.avatar))
     }
 }

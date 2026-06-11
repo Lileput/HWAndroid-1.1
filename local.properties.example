@@ -1,0 +1,12 @@
+# Copy to local.properties and set your personal Api-Key from Netology cabinet.
+# After changing any key: File > Sync Project with Gradle Files, then Rebuild.
+sdk.dir=C\:\\Users\\User\\AppData\\Local\\Android\\Sdk
+NMEDIA_API_KEY=put-your-api-key-here
+
+# Yandex MapKit Mobile SDK: https://developer.tech.yandex.ru/
+# 1. Connect "MapKit – Mobile SDK" (not JavaScript API / Static API).
+# 2. Wait ~15 minutes after creating the key (activation on Yandex servers).
+# 3. Restrict key by package: ru.netology.nmedia
+# 4. Add debug SHA-1 (Android Studio: Gradle → app → Tasks → android → signingReport):
+#    SHA1:AA:BB:... from Variant: debug
+MAPKIT_API_KEY=put-your-yandex-mapkit-key-here

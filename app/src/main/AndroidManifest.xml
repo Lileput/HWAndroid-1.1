@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
@@ -15,6 +17,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.NMedia"
         android:usesCleartextTraffic="${usesCleartextTraffic}">
+
         <activity
             android:name=".activity.AppActivity"
             android:exported="true">
@@ -31,6 +34,10 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activity.MediaViewActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:exported="false" />
         <service
             android:name=".services.FCMService"
             android:exported="false">

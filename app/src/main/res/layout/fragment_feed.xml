@@ -8,9 +8,6 @@
     android:layout_height="match_parent">
 
 <androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -92,11 +89,13 @@
         android:id="@+id/ok"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/common_margin"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
         android:contentDescription="TODO"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="@dimen/common_margin"
-        app:srcCompat="@drawable/ic_save_48" />
+        app:srcCompat="@drawable/outline_add_48" />
 
     <ProgressBar
         android:visibility="gone"

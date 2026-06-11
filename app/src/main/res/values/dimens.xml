@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="common_margin">16dp</dimen>
+    <dimen name="post_card_corner_radius">12dp</dimen>
+    <dimen name="post_card_stroke_width">1dp</dimen>
+    <dimen name="post_card_margin_horizontal">16dp</dimen>
+    <dimen name="post_card_margin_vertical">8dp</dimen>
+    <dimen name="post_list_media_height">188dp</dimen>
+    <dimen name="profile_banner_height">220dp</dimen>
+    <dimen name="profile_fab_bottom_margin">72dp</dimen>
+    <dimen name="new_post_toolbar_height">64dp</dimen>
+    <dimen name="new_post_toolbar_icon_button_size">48dp</dimen>
+    <dimen name="new_post_toolbar_icon_spacing">8dp</dimen>
+    <dimen name="new_post_toolbar_add_size">52dp</dimen>
+    <dimen name="new_post_toolbar_add_corner_radius">14dp</dimen>
+    <dimen name="new_post_toolbar_add_icon_size">32dp</dimen>
 </resources>

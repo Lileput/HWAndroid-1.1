@@ -86,12 +86,7 @@ class FeetFragment : Fragment() {
             }
 
             override fun onPlayVideo(videoUrl: String) {
-                try {
-                    startActivity(Intent(Intent.ACTION_VIEW, videoUrl.toUri()))
-                } catch (e: ActivityNotFoundException) {
-                    Toast.makeText(requireContext(), R.string.no_video_app, Toast.LENGTH_SHORT)
-                        .show()
-                }
+                ru.netology.nmedia.util.MediaPlaybackHelper.play(requireContext(), videoUrl)
             }
 
             override fun showDeleteConfirmation(post: Post) {
@@ -154,12 +149,20 @@ class FeetFragment : Fragment() {
                 binding.errorGroup.isVisible = hasError && isEmpty
                 binding.retry.isVisible = hasError && isEmpty
                 binding.errorTitle.isVisible = hasError && isEmpty
+                if (loadStates.refresh is LoadState.Error) {
+                    val error = (loadStates.refresh as LoadState.Error).error
+                    binding.errorTitle.text = error.message ?: getString(R.string.network_error)
+                } else {
+                    binding.errorTitle.setText(R.string.network_error)
+                }
 
                 if (loadStates.append is LoadState.Error) {
                     val error = (loadStates.append as LoadState.Error).error
-                    Snackbar.make(binding.root,
-                        "Ошибка при загрузке: ${error.message}",
-                        Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(
+                        binding.root,
+                        getString(R.string.error_loading_paging, error.message ?: getString(R.string.network_error)),
+                        Snackbar.LENGTH_LONG,
+                    ).show()
                 }
             }
         }
@@ -183,7 +186,7 @@ class FeetFragment : Fragment() {
         viewModel.errorMessage.observe(viewLifecycleOwner) { errorMessage ->
             errorMessage?.let {
                 Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
-                    .setAction("Повторить") {
+                    .setAction(getString(R.string.retry)) {
                         adapter.retry()
                     }
                     .setAnchorView(binding.ok)
@@ -223,7 +226,11 @@ class FeetFragment : Fragment() {
         }
 
         binding.ok.setOnClickListener {
-            findNavController().navigate(R.id.action_feetFragment_to_newPostFragment)
+            if (appAuth.authState.value == null) {
+                findNavController().navigate(R.id.signInFragment)
+            } else {
+                findNavController().navigate(R.id.action_feetFragment_to_newPostFragment)
+            }
         }
 
         return binding.root

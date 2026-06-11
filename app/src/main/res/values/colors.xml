@@ -8,5 +8,6 @@
     <color name="gray_light">#E0E0E0</color>
     <color name="video_placeholder">#EEEEEE</color>
     <color name="play_button_background">#80000000</color>
+    <color name="new_post_add_button_bg">#E8DEF8</color>
 
 </resources>

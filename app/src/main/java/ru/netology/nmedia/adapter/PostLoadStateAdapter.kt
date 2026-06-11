@@ -6,6 +6,7 @@ import androidx.core.view.isVisible
 import androidx.paging.LoadState
 import androidx.paging.LoadStateAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.ItemLoadStateBinding
 
 class PostLoadStateAdapter(
@@ -38,7 +39,7 @@ class PostLoadStateAdapter(
             binding.errorText.isVisible = loadState is LoadState.Error
 
             if (loadState is LoadState.Error) {
-                binding.errorText.text = "Ошибка загрузки"
+                binding.errorText.text = binding.root.context.getString(R.string.error_loading_posts)
                 binding.errorText.setOnClickListener { retry() }
             }
         }

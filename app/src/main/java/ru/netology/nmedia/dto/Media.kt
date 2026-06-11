@@ -1,3 +1,3 @@
 package ru.netology.nmedia.dto
 
-data class Media(val id: String)
+data class Media(val url: String)

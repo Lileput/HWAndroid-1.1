@@ -103,7 +103,11 @@ class PostRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun save(post: Post, image: File?): Post {
+    override suspend fun save(
+        post: Post,
+        attachmentFile: File?,
+        attachmentType: AttachmentType?,
+    ): Post {
         val tempId = -System.currentTimeMillis()
         val localPost = post.copy(id = tempId)
 
@@ -111,13 +115,13 @@ class PostRepositoryImpl @Inject constructor(
         postDao.insert(entity)
 
         return try {
-            val media = image?.let {
-                upload(it)
-            }
+            val media = attachmentFile?.let { upload(it) }
 
-            val postWithAttachment = media?.let {
-                post.copy(attachment = Attachment(url = it.id, AttachmentType.IMAGE))
-            } ?: post
+            val postWithAttachment = if (media != null && attachmentType != null) {
+                post.copy(attachment = Attachment(url = media.url, type = attachmentType))
+            } else {
+                post
+            }
 
             val response = apiService.save(postWithAttachment)
 
@@ -126,14 +130,18 @@ class PostRepositoryImpl @Inject constructor(
             }
 
             val savedPost = response.body() ?: throw RuntimeException("Post not saved")
+            val postWithMedia = savedPost.copy(
+                attachment = savedPost.attachment ?: postWithAttachment.attachment,
+                authorAvatar = savedPost.authorAvatar ?: postWithAttachment.authorAvatar,
+            )
 
             postDao.updatePost(
-                PostEntity.fromDto(savedPost).copy(syncStatus = PostEntity.SyncStatus.SYNCED)
+                PostEntity.fromDto(postWithMedia).copy(syncStatus = PostEntity.SyncStatus.SYNCED)
             )
 
             postDao.removeById(tempId)
 
-            savedPost
+            postWithMedia
         } catch (e: Exception) {
             postDao.updateSyncStatus(tempId, PostEntity.SyncStatus.FAILED)
             throw e

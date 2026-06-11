@@ -111,6 +111,10 @@ class PostRemoteMediator(
             return MediatorResult.Success(data.isEmpty())
         } catch (e: IOException) {
             return MediatorResult.Error(e)
+        } catch (e: HttpException) {
+            return MediatorResult.Error(e)
+        } catch (e: Exception) {
+            return MediatorResult.Error(e)
         }
     }
 }

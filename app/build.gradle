@@ -1,102 +1,110 @@
-    plugins {
-        alias(libs.plugins.android.application)
-        alias(libs.plugins.kotlin.android)
-        alias(libs.plugins.kotlin.kapt)
-        id 'com.google.gms.google-services'
-        id 'com.google.dagger.hilt.android'
+plugins {
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.kapt)
+    id 'com.google.gms.google-services'
+    id 'com.google.dagger.hilt.android'
+}
+
+def localProperties = new Properties()
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.withInputStream { localProperties.load(it) }
+}
+def nmediaApiKey = localProperties.getProperty("NMEDIA_API_KEY", "")
+def mapkitApiKey = localProperties.getProperty("MAPKIT_API_KEY", "").trim()
+
+android {
+    namespace 'ru.netology.nmedia'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId "ru.netology.nmedia"
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName "1.0"
+        buildConfigField "String", "NMEDIA_API_KEY", "\"${nmediaApiKey}\""
+        buildConfigField "String", "MAPKIT_API_KEY", "\"${mapkitApiKey}\""
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    android {
-        namespace 'ru.netology.nmedia'
-        compileSdk 36
-
-        defaultConfig {
-            applicationId "ru.netology.nmedia"
-            minSdk 24
-            targetSdk 36
-            versionCode 1
-            versionName "1.0"
-
-            testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            manifestPlaceholders["usesCleartextTraffic"] = false
         }
-
-        buildTypes {
-            release {
-                minifyEnabled false
-                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                manifestPlaceholders["usesCleartextTraffic"] = false
-            }
-            debug {
-                manifestPlaceholders["usesCleartextTraffic"] = true
-            }
-        }
-        compileOptions {
-            sourceCompatibility JavaVersion.VERSION_17
-            targetCompatibility JavaVersion.VERSION_17
-        }
-
-        buildFeatures {
-            viewBinding true
-            buildConfig true
-        }
-
-        kapt {
-            correctErrorTypes true
-            useBuildCache true
-        }
-
-        packaging {
-            resources {
-                excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
-            }
+        debug {
+            manifestPlaceholders["usesCleartextTraffic"] = true
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
+    }
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    kapt {
+        correctErrorTypes true
+        useBuildCache true
+    }
+
+    packaging {
+        resources {
+            excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
         }
     }
+}
 
-    dependencies {
-
-        implementation libs.androidx.core.ktx
-        implementation libs.androidx.appcompat
-        implementation libs.material
-        implementation libs.androidx.activity
-        implementation libs.androidx.constraintlayout
-        implementation libs.androidx.activity.ktx
-        implementation libs.androidx.lifecycle.viewmodel.ktx.v287
-        implementation libs.androidx.lifecycle.livedata.ktx.v287
-        implementation libs.gson
-        implementation libs.androidx.navigation.fragment.ktx.v286
-        implementation libs.androidx.navigation.ui.ktx.v286
-        implementation libs.androidx.swiperefreshlayout
-        implementation libs.androidx.room.runtime
-        implementation (libs.okhttp)
-        implementation(libs.retrofit)
-        implementation(libs.converter.gson)
-        implementation(libs.okhttp3.logging.interceptor)
-        kapt libs.androidx.room.compiler
-        implementation platform(libs.firebase.bom)
-        implementation libs.firebase.messaging
-        implementation libs.play.services.base
-        implementation libs.imagepicker
-        implementation libs.ucrop
-        implementation libs.glide
-        implementation libs.glide.transformations
-        implementation (libs.kotlinx.coroutines.core)
-        implementation libs.hilt.android
-        kapt libs.hilt.compiler
-        implementation libs.androidx.hilt.navigation.fragment
-        implementation libs.androidx.hilt.work
-        implementation libs.kotlinx.coroutines.android
-        implementation libs.androidx.work.runtime.ktx
-        implementation libs.androidx.paging.runtime
-        implementation libs.androidx.room.paging
-
-
-        testImplementation libs.junit
-        androidTestImplementation libs.androidx.junit
-        androidTestImplementation libs.androidx.espresso.core
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     }
+}
+
+dependencies {
+    implementation libs.androidx.core.ktx
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.activity.ktx
+    implementation libs.androidx.lifecycle.viewmodel.ktx
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.navigation.fragment.ktx
+    implementation libs.androidx.navigation.ui.ktx
+    implementation libs.androidx.swiperefreshlayout
+    implementation libs.androidx.room.runtime
+    implementation libs.okhttp
+    implementation libs.retrofit
+    implementation libs.converter.gson
+    implementation libs.okhttp3.logging.interceptor
+    kapt libs.androidx.room.compiler
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.messaging
+    implementation libs.yandex.mapkit
+    implementation libs.imagepicker
+    implementation libs.ucrop
+    implementation libs.glide
+    implementation libs.glide.okhttp
+    kapt libs.glide.compiler
+    implementation libs.hilt.android
+    kapt libs.hilt.compiler
+    implementation libs.androidx.hilt.navigation.fragment
+    implementation libs.kotlinx.coroutines.android
+    implementation libs.androidx.paging.runtime
+    implementation libs.androidx.room.paging
+    implementation libs.androidx.media3.common
+    implementation libs.androidx.media3.exoplayer
+    implementation libs.androidx.media3.ui
+    implementation libs.androidx.media3.datasource.okhttp
+
+    testImplementation libs.junit
+    androidTestImplementation libs.androidx.junit
+    androidTestImplementation libs.androidx.espresso.core
+}

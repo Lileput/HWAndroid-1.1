@@ -1,18 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <group android:id="@+id/authorized">
-        <item
-            android:id="@+id/logout"
-            android:title="@string/logout" />
-    </group>
-
-    <group android:id="@+id/unauthorized">
-        <item
-            android:id="@+id/signIn"
-            android:title="@string/sign_in" />
-
-        <item
-            android:id="@+id/signUp"
-            android:title="@string/sign_up" />
-    </group>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/auth"
+        android:icon="@drawable/ic_profile_24"
+        android:title="@string/menu_account"
+        app:showAsAction="always" />
 </menu>

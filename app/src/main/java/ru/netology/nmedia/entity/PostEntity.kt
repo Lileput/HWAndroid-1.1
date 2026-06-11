@@ -5,6 +5,10 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.Post
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @Entity
 data class PostEntity(
@@ -13,6 +17,7 @@ data class PostEntity(
     val author: String,
     val authorAvatar: String? = null,
     val authorId: Long,
+    val link: String? = null,
     val content: String,
     val published: Long,
     val likes: Int = 0,
@@ -42,7 +47,8 @@ data class PostEntity(
         authorAvatar = authorAvatar,
         authorId = authorId,
         content = content,
-        published = published,
+        published = epochToPublished(published),
+        link = link,
         likes = likes,
         shares = shares,
         views = views,
@@ -55,14 +61,50 @@ data class PostEntity(
     )
 
     companion object {
+        fun publishedToEpoch(value: String): Long {
+            if (value.isBlank()) return 0L
+            return try {
+                if (value.all { it.isDigit() }) value.toLong()
+                else {
+                    parseIsoDate(value)?.time?.div(1000) ?: 0L
+                }
+            } catch (_: Exception) {
+                0L
+            }
+        }
+
+        fun epochToPublished(epoch: Long): String {
+            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+            sdf.timeZone = TimeZone.getTimeZone("UTC")
+            return sdf.format(Date(epoch * 1000))
+        }
+
+        private fun parseIsoDate(value: String): Date? {
+            val patterns = listOf(
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            )
+            for (pattern in patterns) {
+                try {
+                    val sdf = SimpleDateFormat(pattern, Locale.US)
+                    sdf.timeZone = TimeZone.getTimeZone("UTC")
+                    val parsed = sdf.parse(value)
+                    if (parsed != null) return parsed
+                } catch (_: Exception) {
+                }
+            }
+            return null
+        }
+
         fun fromDto(dto: Post) = PostEntity(
             id = dto.id,
             author = dto.author,
             authorAvatar = dto.authorAvatar,
             authorId = dto.authorId,
+            link = dto.link,
             content = dto.content,
-            published = dto.published,
-            likes = dto.likes,
+            published = publishedToEpoch(dto.published),
+            likes = dto.likesCount,
             shares = dto.shares,
             views = dto.views,
             likedByMe = dto.likedByMe,

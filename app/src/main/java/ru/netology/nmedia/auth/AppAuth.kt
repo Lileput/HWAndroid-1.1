@@ -33,16 +33,18 @@ class AppAuth @Inject constructor(
     companion object {
         private const val TOKEN_KEY = "TOKEN_KEY"
         private const val ID_KEY = "ID_KEY"
+        private const val AVATAR_KEY = "AVATAR_KEY"
     }
 
     init {
         val token = prefs.getString(TOKEN_KEY, null)
         val id = prefs.getLong(ID_KEY, 0)
+        val avatar = prefs.getString(AVATAR_KEY, null)
 
         if (token == null || id == 0L) {
             prefs.edit { clear() }
         } else {
-            _authState.value = Token(id, token)
+            _authState.value = Token(id = id, token = token, avatar = avatar)
         }
 
         sendPushToken()
@@ -50,10 +52,16 @@ class AppAuth @Inject constructor(
 
     @Synchronized
     fun setAuth(token: Token) {
-        _authState.value = token
+        val normalized = token.copy(id = token.resolvedId())
+        _authState.value = normalized
         prefs.edit {
-            putLong(ID_KEY, token.id)
-            putString(TOKEN_KEY, token.token)
+            putLong(ID_KEY, normalized.id)
+            putString(TOKEN_KEY, normalized.token)
+            if (normalized.avatar.isNullOrBlank()) {
+                remove(AVATAR_KEY)
+            } else {
+                putString(AVATAR_KEY, normalized.avatar)
+            }
         }
         sendPushToken()
     }

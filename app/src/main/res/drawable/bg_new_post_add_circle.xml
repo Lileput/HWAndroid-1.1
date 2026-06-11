@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/new_post_add_button_bg" />
+    <corners android:radius="@dimen/new_post_toolbar_add_corner_radius" />
+</shape>

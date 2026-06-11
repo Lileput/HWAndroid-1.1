@@ -15,6 +15,36 @@
     <style name="Widget.AppTheme.OptionButton" parent="Widget.Material3.FloatingActionButton.Primary">
         <item name="iconTint">@color/share_color</item>
     </style>
+    <style name="App.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">#EADDFF</item>
+        <item name="android:height">32dp</item>
+        <item name="android:width">64dp</item>
+    </style>
 
+    <style name="Widget.NMedia.NewPostToolbarIconButton" parent="Widget.Material3.Button.IconButton">
+        <item name="iconSize">@dimen/new_post_toolbar_icon_button_size</item>
+        <item name="iconTint">@android:color/black</item>
+        <item name="iconPadding">0dp</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+    </style>
+
+    <style name="Widget.NMedia.NewPostToolbarAddButton" parent="Widget.Material3.Button.IconButton">
+        <item name="iconSize">@dimen/new_post_toolbar_add_icon_size</item>
+        <item name="iconPadding">0dp</item>
+        <item name="iconTint">?attr/colorPrimary</item>
+        <item name="backgroundTint">@color/new_post_add_button_bg</item>
+        <item name="cornerRadius">@dimen/new_post_toolbar_add_corner_radius</item>
+        <item name="android:padding">0dp</item>
+        <item name="android:insetLeft">0dp</item>
+        <item name="android:insetRight">0dp</item>
+        <item name="android:insetTop">0dp</item>
+        <item name="android:insetBottom">0dp</item>
+        <item name="ensureMinTouchTargetSize">false</item>
+    </style>
 
 </resources>

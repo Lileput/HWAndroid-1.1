@@ -18,6 +18,9 @@ interface PostDao {
     @Query("SELECT * FROM PostEntity WHERE hidden = 0 ORDER BY id DESC")
     fun getPagingSource(): PagingSource<Int, PostEntity>
 
+    @Query("SELECT * FROM PostEntity WHERE authorId = :authorId AND hidden = 0 ORDER BY id DESC")
+    fun getWallPagingSource(authorId: Long): PagingSource<Int, PostEntity>
+
     @Query("SELECT * FROM PostEntity ORDER BY id DESC")
     fun getAllIncludingHidden(): Flow<List<PostEntity>>
 

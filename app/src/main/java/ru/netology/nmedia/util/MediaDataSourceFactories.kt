@@ -2,6 +2,7 @@ package ru.netology.nmedia.util
 
 import android.content.Context
 import android.net.Uri
+import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
@@ -9,7 +10,7 @@ import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import okhttp3.OkHttpClient
 
-@UnstableApi
+@OptIn(UnstableApi::class)
 object MediaDataSourceFactories {
 
     private const val API_HOST = "94.228.125.136"
